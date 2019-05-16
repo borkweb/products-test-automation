@@ -1,0 +1,47 @@
+{
+  "name": "moderntrbe/products-dev",
+  "authors": [
+    {
+      "name": "Modern Tribe",
+      "email": "hello@tri.be"
+    }
+  ],
+  "config": {
+    "vendor-dir": "vendor",
+    "preferred-install": "dist"
+  },
+  "description": "Simple Dev Env for TEC and plugins",
+  "type": "project",
+  "license": "GPL",
+  "minimum-stability": "dev",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org"
+    }
+  ],
+  "require": {
+    "johnpbloch/wordpress-core-installer": "^1.0",
+    "johnpbloch/wordpress-core": "5.1.1",
+    "wpackagist-plugin/configure-smtp": "*",
+    "wpackagist-plugin/limit-login-attempts": "*",
+    "wpackagist-plugin/posts-to-posts": "1.6.5",
+    "wpackagist-plugin/regenerate-thumbnails": "*",
+    "wpackagist-plugin/wordpress-seo": "*",
+    "wpackagist-plugin/user-switching": "*",
+    "wpackagist-plugin/classic-editor":"*",
+    "wpackagist-plugin/woocommerce":"*",
+    "wpackagist-plugin/easy-digital-downloads":"*",
+    "wpackagist-theme/twentyfifteen": "*",
+    "wpackagist-theme/twentyseventeen": "*",
+    "wpackagist-theme/twentysixteen": "*"
+  },
+  "extra": {
+    "wordpress-install-dir": "wp",
+    "installer-paths": {
+      "wp-content/mu-plugins/{$name}": [ "type:wordpress-muplugin"],
+      "wp-content/plugins/{$name}":["type:wordpress-plugin"],
+      "wp-content/themes/{$name}":["type:wordpress-theme"]
+    }
+  }
+}

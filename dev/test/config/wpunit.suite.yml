@@ -1,0 +1,7 @@
+class_name: WpunitTester
+modules:
+    enabled: [WPLoader, \Helper\Wpunit]
+    config:
+        WPLoader:
+            pluginsFolder: ../wp-content/plugins/
+

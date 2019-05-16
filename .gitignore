@@ -1,0 +1,11 @@
+.DS_Store
+wp-lib
+wp
+vendor
+.data
+.idea
+*.log
+
+wp-content/uploads
+wp-content/plugins
+wp-content/themes
