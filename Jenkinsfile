@@ -32,7 +32,7 @@ pipeline {
                 sh script: "sh ./dev/setup/src/gulp.sh", label: "Compile Javascript and CSS"
             }
         }
-        stage('Gulp') {
+        stage('Test Config') {
             steps {
                 sh script: "sh ./dev/setup/src/config.sh", label: "Setup Test configurations"
             }
