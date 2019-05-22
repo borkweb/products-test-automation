@@ -2,44 +2,51 @@ pipeline {
     agent any
 
     stages {
-        stage('Meta Repo Composer') {
-                    steps {
-                        sh script: "composer install", label: "Install WP and required plugins"
-                    }
+        stage('Clone') {
+            agent {
+                docker {
+                  image 'composer:1.8'
+                  reuseNode true
                 }
-        stage('Checkout Plugins') {
+            }
             steps {
                 sh script: "sh ./dev/setup/src/clone.sh", label: "Clone Repositories"
             }
         }
-        stage('Composer') {
-            steps {
-                sh script: "sh ./dev/setup/src/composer.sh", label: "Install Composer Dependencies"
+        stage('Install Dependencies') {
+            agent {
+                docker {
+                  image 'composer:1.8'
+                  reuseNode true
+                }
             }
-        }
-        stage('Submodules') {
             steps {
+                sh script: "composer install", label: "Install WP and required plugins"
+                sh script: "sh ./dev/setup/src/composer.sh", label: "Install Composer Dependencies"
                 sh script: "sh ./dev/setup/src/submodules.sh", label: "Install Git Submodules"
             }
         }
-        stage('NPM') {
+        stage('Build JS') {
+            agent {
+                docker {
+                    image 'node:10.15.0-alpine'
+                    args '-u root'
+                    reuseNode true
+                }
+            }
             steps {
                 sh script: "sh ./dev/setup/src/npm.sh", label: "Install NPM Dependencies"
-            }
-        }
-        stage('Gulp') {
-            steps {
                 sh script: "sh ./dev/setup/src/gulp.sh", label: "Compile Javascript and CSS"
             }
         }
         stage('Test Config') {
             steps {
-                sh script: "sh ./dev/setup/src/config.sh", label: "Setup Test configurations"
+
             }
         }
         stage('WPUnit') {
             steps {
-                sh script: "sh ./dev/setup/src/tests.sh", label: "Run Tests"
+
             }
         }
     }
