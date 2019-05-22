@@ -39,15 +39,5 @@ pipeline {
                 sh script: "sh ./dev/setup/src/gulp.sh", label: "Compile Javascript and CSS"
             }
         }
-        stage('Test Config') {
-            steps {
-
-            }
-        }
-        stage('WPUnit') {
-            steps {
-
-            }
-        }
     }
 }
