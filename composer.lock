@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f2cde7832593f40a315589bac8a5bbf0",
+    "content-hash": "f37ac51ffdc17cd5ab6d1b327b892513",
     "packages": [
         {
             "name": "composer/installers",
@@ -252,6 +252,25 @@
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/configure-smtp/",
             "time": "2011-07-14T19:23:54+00:00"
+        },
+        {
+            "name": "wpackagist-plugin/easy-digital-downloads",
+            "version": "dev-trunk",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/easy-digital-downloads/",
+                "reference": "trunk"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/easy-digital-downloads.zip?timestamp=1557345081"
+            },
+            "require": {
+                "composer/installers": "~1.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/easy-digital-downloads/",
+            "time": "2019-05-08T19:51:21+00:00"
         },
         {
             "name": "wpackagist-plugin/limit-login-attempts",

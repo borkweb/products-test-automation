@@ -5,6 +5,7 @@ vendor
 .data
 .idea
 *.log
+local-config.php
 
 wp-content/uploads
 wp-content/plugins

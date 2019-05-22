@@ -1,0 +1,6 @@
+class_name: IntegrationTester
+modules:
+    enabled: [WPLoader, \Helper\Integration]
+    config:
+        WPLoader:
+            pluginsFolder: ../wp-content/plugins/
