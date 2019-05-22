@@ -1,8 +1,2 @@
 the-events-calendar
 events-pro
-event-tickets
-event-tickets-plus
-events-community
-events-community-tickets
-events-eventbrite
-events-filterbar

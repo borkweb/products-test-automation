@@ -1,6 +1,6 @@
-# Products Dev Environment
+# Products Dev Environment (ALPHA)
 
-This project is a TEC and Plugins meta repo dev. It was built as a wrapper for our products suite and server two purposes:
+This project is a TEC and Plugins meta repo. It was built as a wrapper for our products suite and serves two purposes:
 
 1. A development environment for a quick start to contributing effectively
 2. A CI environment for running testing across our entire suite of plugins
@@ -16,3 +16,7 @@ We recommend you work in whatever environment you wish, especially since many of
 1. [Setup](docs/setup.md)
 1. [Local Dev](docs/local-dev.md)
 1. [Tests](docs/tests.md)
+
+NOTE: This is a WIP
+
+
