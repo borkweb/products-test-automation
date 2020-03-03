@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Pull WordPress image
         run: docker pull wordpress:${{ matrix.wordpress }}-apache
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Pull all the plugins
-        run: php ./dev/setup/dl-plugin-zips.php 3
+        run: php dev/setup/dl-plugin-zips.php 3
 
