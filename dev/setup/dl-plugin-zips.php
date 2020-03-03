@@ -4,11 +4,11 @@
 function curl_get( $url, array $query_args = null ) {
 	$full_url = $url . ( strpos( $url, '?' ) === false ? '?' : '' ) . http_build_query( $query_args );
 
-	$curl_handle  = curl_init();
+	$curl_handle = curl_init();
 	curl_setopt( $curl_handle, CURLOPT_URL, $full_url );
 	curl_setopt( $curl_handle, CURLOPT_HEADER, 0 );
-	curl_setopt( $curl_handle, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt( $curl_handle, CURLOPT_TIMEOUT, 10);
+	curl_setopt( $curl_handle, CURLOPT_RETURNTRANSFER, true );
+	curl_setopt( $curl_handle, CURLOPT_TIMEOUT, 10 );
 
 	if ( ! $result = curl_exec( $curl_handle ) ) {
 		echo "\nFailed to process curl request.";
@@ -69,7 +69,7 @@ function get_org_plugins_versions( array $required_org_plugins = [], $number_ver
 	}
 
 	echo "\n\nFetching .org plugins versions...";
-	$plugin_api_url = 'https://api.wordpress.org/plugins/info/1.2/';
+	$plugin_api_url        = 'https://api.wordpress.org/plugins/info/1.2/';
 	$org_plugins_json_info = curl_get( $plugin_api_url, [
 		'action'  => 'plugin_information',
 		'request' =>
@@ -164,7 +164,7 @@ $required_org_plugins     = array_intersect( $plugins, $org_plugins );
 $required_premium_plugins = array_intersect( $plugins, $premium_plugins );
 $org_plugins_versions     = get_org_plugins_versions( $required_org_plugins, $number_versions );
 $premium_plugins_versions = get_premium_plugins_versions( $required_premium_plugins, $number_versions );
-$all_required_plugins = array_merge( $required_org_plugins, $required_premium_plugins );
+$all_required_plugins     = array_merge( $required_org_plugins, $required_premium_plugins );
 $all_plugins_versions     = $org_plugins_versions + $premium_plugins_versions;
 $plugin_store             = getcwd() . '/_plugin_store';
 make_plugin_store( $plugin_store );
