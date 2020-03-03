@@ -164,6 +164,7 @@ $required_org_plugins     = array_intersect( $plugins, $org_plugins );
 $required_premium_plugins = array_intersect( $plugins, $premium_plugins );
 $org_plugins_versions     = get_org_plugins_versions( $required_org_plugins, $number_versions );
 $premium_plugins_versions = get_premium_plugins_versions( $required_premium_plugins, $number_versions );
+$all_required_plugins = array_merge( $required_org_plugins, $required_premium_plugins );
 $all_plugins_versions     = $org_plugins_versions + $premium_plugins_versions;
 $plugin_store             = getcwd() . '/_plugin_store';
 make_plugin_store( $plugin_store );
