@@ -1,0 +1,21 @@
+name: Activation test
+
+on:
+  # Run on push.
+  push:
+  # Run once a day.
+  schedule: '* 0 * * *'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        wordpress: [ 5.2 5.3 ]
+    name: Test activation on WP ${{ matrix.wordpress }}
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Pull WordPress image
+        run: docker pull wordpress:${{ matrix.wordpress }}-apache
+      - name: Pull all the plugins
+        run: php ./dev/setup/dl-plugin-zips.php 3
+

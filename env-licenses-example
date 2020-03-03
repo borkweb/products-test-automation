@@ -1,0 +1,13 @@
+# This is an example file.
+# Create a copy of this file called .env.licenses, fill in this file with your license details.
+# When testing the activation script locally you can call the dev/setup/dl-plugins-zip.php 
+# file specifying this file as 3rd argument.
+
+EVENTS_CALENDAR_PRO_LICENSE=########################################
+EVENT_TICKETS_PLUS_LICENSE=########################################
+COMMUNITY_EVENTS_LICENSE=########################################
+COMMUNITY_TICKETS_LICENSE=########################################
+EVENTBRITE_TICKETS_LICENSE=########################################
+EVENT_AGGREGATOR_LICENSE=########################################
+FILTER_BAR_LICENSE=########################################
+IMAGE_WIDGET_PLUS_LICENSE=########################################

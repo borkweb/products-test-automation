@@ -10,3 +10,9 @@ local-config.php
 wp-content/uploads
 wp-content/plugins
 wp-content/themes
+
+# The directory where we're downloading the plugins in different versions.
+_plugin_store
+
+# Local file used to test the script locally.
+.env.licenses
