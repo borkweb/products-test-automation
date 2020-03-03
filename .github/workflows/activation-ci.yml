@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        wordpress: [ 5.2 5.3 ]
+        wordpress: [ "5.3" ]
     name: Test activation on WP ${{ matrix.wordpress }}
     runs-on: ubuntu-18.04
     steps:
