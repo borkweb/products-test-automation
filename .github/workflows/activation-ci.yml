@@ -2,9 +2,9 @@ name: Activation test
 
 on:
   # Run on push.
-  push:
+  - push
   # Run once a day.
-  schedule: '* 0 * * *'
+  # schedule: '* 0 * * *'
 
 jobs:
   build:
