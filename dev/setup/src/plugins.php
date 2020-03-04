@@ -207,8 +207,6 @@ function download_plugin_versions( array $plugin_versions ) {
 	     . json_encode( $debug_info, JSON_PRETTY_PRINT );
 	echo "\n";
 
-	exit( 0 );
-
 	foreach ( $plugin_versions as $plugin => $versions ) {
 		foreach ( $versions as $version => $archive_url ) {
 			$dest = plugin_store() . '/' . $plugin . '-' . $version . '.zip';
