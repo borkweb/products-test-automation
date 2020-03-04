@@ -19,5 +19,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Pull all the plugins
+        with:
+          EVENTS_CALENDAR_PRO_LICENSE: ${{ secrets.EVENTS_CALENDAR_PRO_LICENSE }}
+          EVENT_TICKETS_PLUS_LICENSE: ${{ secrets.EVENT_TICKETS_PLUS_LICENSE }}
+          COMMUNITY_EVENTS_LICENSE: ${{ secrets.COMMUNITY_EVENTS_LICENSE }}
+          COMMUNITY_TICKETS_LICENSE: ${{ secrets.COMMUNITY_TICKETS_LICENSE }}
+          EVENTBRITE_TICKETS_LICENSE: ${{ secrets.EVENTBRITE_TICKETS_LICENSE }}
+          EVENT_AGGREGATOR_LICENSE: ${{ secrets.EVENT_AGGREGATOR_LICENSE }}
+          FILTERBAR_LICENSE: ${{ secrets.FILTERBAR_LICENSE }}
+          IMAGE_WIDGET_PLUS_LICENSE: ${{ secrets.IMAGE_WIDGET_PLUS_LICENSE }}
+          PUE_URL: ${{ secrets.PUE_URL }}
+          PUE_SIGNED_SECRET: ${{ secrets.PUE_SIGNED_SECRET }}
         run: php dev/setup/dl-plugin-zips.php 3 the-events-calendar,event-tickets,tribe-filterbar,event-tickets-plus
 
