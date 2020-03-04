@@ -19,5 +19,5 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Pull all the plugins
-        run: php dev/setup/dl-plugin-zips.php 3 the-events-calendar,event-tickets
+        run: php dev/setup/dl-plugin-zips.php 3 the-events-calendar,event-tickets,tribe-filterbar,event-tickets-plus
 
