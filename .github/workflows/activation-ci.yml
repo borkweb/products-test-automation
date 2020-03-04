@@ -14,12 +14,13 @@ jobs:
     name: Test activation on WP ${{ matrix.wordpress }}
     runs-on: ubuntu-18.04
     steps:
-      - name: Pull WordPress image
-        run: docker pull wordpress:${{ matrix.wordpress }}-apache
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Pull WordPress image
+        run: docker pull wordpress:${{ matrix.wordpress }}-apache
       - name: Pull all the plugins
-        with:
+        run: php dev/setup/dl-plugin-zips.php 3 the-events-calendar,event-tickets,tribe-filterbar,event-tickets-plus
+        env:
           EVENTS_CALENDAR_PRO_LICENSE: ${{ secrets.EVENTS_CALENDAR_PRO_LICENSE }}
           EVENT_TICKETS_PLUS_LICENSE: ${{ secrets.EVENT_TICKETS_PLUS_LICENSE }}
           COMMUNITY_EVENTS_LICENSE: ${{ secrets.COMMUNITY_EVENTS_LICENSE }}
@@ -30,5 +31,3 @@ jobs:
           IMAGE_WIDGET_PLUS_LICENSE: ${{ secrets.IMAGE_WIDGET_PLUS_LICENSE }}
           PUE_URL: ${{ secrets.PUE_URL }}
           PUE_SIGNED_SECRET: ${{ secrets.PUE_SIGNED_SECRET }}
-        run: php dev/setup/dl-plugin-zips.php 3 the-events-calendar,event-tickets,tribe-filterbar,event-tickets-plus
-
