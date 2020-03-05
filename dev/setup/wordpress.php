@@ -12,6 +12,8 @@ function random_wordpress_version( $number_versions = 3 ) {
 	$all_versions = array_column( $versions, 'version' );
 	// First is auto-update, remove.
 	$all_versions = array_slice($all_versions,1);
+	// Always add "nightly" on top.
+	array_unshift( $all_versions, 'nightly' );
 
 	return $versions[ array_rand( array_slice( $all_versions, 0, $number_versions ), 1 ) ]['version'];
 }

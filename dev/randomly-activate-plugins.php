@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 require_once __DIR__ . '/setup/docker.php';
-require_once  __DIR__ . '/setup/wordpress.php';
+require_once __DIR__ . '/setup/wordpress.php';
 require_once __DIR__ . '/test/tests.php';
 
 if ( 0 === $argc ) {
@@ -22,12 +22,12 @@ $args = args( [
 
 $docker_compose = docker_compose( [ '-f', 'dev/test/activation-stack.yml' ] );
 $cli            = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'cli', '--allow-root' ] );
-
-putenv( 'WORDPRESS_VERSION=' . random_wordpress_version( $args( 'wp_number_versions', 5 ) ) );
+$waiter         = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'waiter' ] );
 
 check_status_or_exit( $docker_compose( [ 'up', '-d', 'wordpress' ] ) );
 
-check_status_or_wait( $cli( [ 'db', 'check' ] ), 60 );
+// Wait for WordPress container to come up.
+check_status_or_wait( $waiter() );
 
 check_status_or_exit( $cli( [
 	'core',
@@ -38,6 +38,13 @@ check_status_or_exit( $cli( [
 	'--admin_password=admin',
 	'--admin_email=admin@tribe.localhost',
 	'--skip-email',
+] ) );
+
+check_status_or_exit( $cli ( [
+	'core',
+	'update',
+	'--version=' . random_wordpress_version( $args( 'wp_number_versions', 5 ) ),
+	'--force',
 ] ) );
 
 randomly_activate_plugins( (int) $args( 'epochs', 3 ) );

@@ -16,7 +16,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
 
   wordpress:
-    image: 'wordpress:${WORDPRESS_VERSION:-latest}'
+    image: wordpress:latest
     user: "${UID}:${GID}"
     networks:
       - test
@@ -39,3 +39,16 @@ services:
     volumes:
       - wordpress:/var/www/html
       - ./_plugin_store:/var/www/html/_plugin_store
+
+  waiter:
+    image: theypsilon/waiter-mysql:0.1.23
+    networks:
+      - test
+    environment:
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_NAME: test
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      WAITER_TIMEOUT: 30
+      WAITER_ATTEMPT_SLEEPTIME: 2

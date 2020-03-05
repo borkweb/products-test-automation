@@ -11,7 +11,7 @@ function docker_compose( array $options = [] ) {
 	return static function ( array $command = [] ) use ( $options ) {
 		$command = 'docker-compose ' . implode( ' ', $options ) . ' ' . implode( ' ', $command );
 
-		echo "\nExecuting command: {$command}";
+		echo "\nExecuting command: {$command}\n";
 
 		exec( escapeshellcmd( $command ), $output, $status );
 
