@@ -31,5 +31,5 @@ jobs:
           IMAGE_WIDGET_PLUS_LICENSE: ${{ secrets.IMAGE_WIDGET_PLUS_LICENSE }}
           PUE_URL: ${{ secrets.PUE_URL }}
           PUE_SIGNED_SECRET: ${{ secrets.PUE_SIGNED_SECRET }}
-      - name: Randomly activate plugins (3 epochs, last 5 WP versions)
-        run: php dev/randomly-activate-plugins.php 3 5
+      - name: Randomly activate plugins (3 epochs, last 3 WP versions)
+        run: php dev/randomly-activate-plugins.php 3 3
