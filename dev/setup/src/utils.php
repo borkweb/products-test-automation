@@ -70,3 +70,48 @@ function parse_list( $list, $sep = ',' ) {
 
 	return $list;
 }
+
+function array_rand_keys( array $array, $num_req = 1 ) {
+	$picks = array_rand( $array, $num_req );
+
+	return array_keys( array_intersect( array_flip( $array ), $picks ) );
+}
+
+function check_status_or_exit( callable $process ) {
+	if ( 0 !== (int) $process( 'status' ) ) {
+		echo "\nProcess status is not 0, output: \n\n" . implode( "\n", $process( 'output' ) );
+		exit ( 1 );
+	}
+}
+
+function check_status_or_wait( callable $process, $timeout = 10 ) {
+	$end = time() + (int) $timeout;
+	while ( time() <= $end ) {
+		if ( 0 !== (int) $process( 'status' ) ) {
+			echo "\nProcess status is not 0, waiting...";
+			sleep( 2);
+		} else {
+			return;
+		}
+	}
+	check_status_or_exit( $process );
+}
+
+function relative_path( $root, $file ) {
+	$root          = rtrim( $root, '\\/' );
+	$relative_path = str_replace( $root, '', $file );
+
+	return ltrim( $relative_path, '\\/' );
+}
+
+function setup_id() {
+	$uid = getenv( 'UID' );
+	putenv( 'UID=' . $uid );
+
+	$gid = getenv( 'GID' );
+	putenv( 'GID=' . $gid );
+}
+
+function the_process_output( $process ) {
+	echo "\n" . implode( "\n", $process( 'output' ) );
+}

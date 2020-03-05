@@ -1,0 +1,41 @@
+version: "3"
+
+networks:
+  test:
+
+volumes:
+  wordpress:
+
+services:
+
+  db:
+    image: mariadb
+    networks:
+      - test
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+
+  wordpress:
+    image: 'wordpress:${WORDPRESS_VERSION:-latest}'
+    user: "${UID}:${GID}"
+    networks:
+      - test
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: password
+      # This db is created by the db container at startup.
+      WORDPRESS_DB_NAME: test
+      WORDPRESS_DB_HOST: db
+    volumes:
+      - wordpress:/var/www/html
+
+  cli:
+    image: wordpress:cli
+    user: "${UID}:${GID}"
+    networks:
+      - test
+    volumes:
+      - wordpress:/var/www/html
+      - ./_plugin_store:/var/www/html/_plugin_store

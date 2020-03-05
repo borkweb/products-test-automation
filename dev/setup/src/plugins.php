@@ -9,6 +9,7 @@ function org_plugins() {
 		'the-events-calendar',
 		'event-tickets',
 		'advanced-post-manager',
+		'image-widget',
 	];
 }
 
@@ -160,7 +161,7 @@ function premium_plugin_versions( array $required_plugins = [], $number_versions
 }
 
 function plugin_store() {
-	$plugin_store = getcwd() . '/_plugin_store';
+	$plugin_store = getcwd() . '/dev/test/_plugin_store';
 	if ( ! is_dir( $plugin_store ) && ! mkdir( $plugin_store, 0777, true ) && ! is_dir( $plugin_store ) ) {
 		printf( "\nPlugin store directory %s could not be created.", $plugin_store );
 		exit( 1 );
@@ -221,3 +222,80 @@ function download_plugin_versions( array $plugin_versions ) {
 	}
 }
 
+function random_plugins( $dir ) {
+	$available_zips_iterator = new CallbackFilterIterator(
+		new FilesystemIterator( $dir, FilesystemIterator::SKIP_DOTS ),
+		static function ( SplFileInfo $f ) {
+			$plugin_zip_pattern = '/[\\w_-]+-[0-9\\.]+\\.zip$/uis';
+
+			return $f->isFile() && preg_match( $plugin_zip_pattern, $f->getBasename() );
+		}
+	);
+
+	$available_zips = iterator_to_array( $available_zips_iterator );
+
+	if ( 0 === count( $available_zips ) ) {
+		echo "\nNo plugin zips available" .
+		     exit( 1 );
+	}
+
+	$by_slug = array_reduce( $available_zips, static function ( array $map, SplFileInfo $f ) {
+		$plugin_zip_pattern = '/(?<slug>[\\w_-]+)-(?<version>[0-9\\.]+)$/uis';
+		preg_match( $plugin_zip_pattern, $f->getBasename( '.zip' ), $m );
+
+		if ( ! isset( $m['slug'], $m['version'] ) ) {
+			echo "\nPlugin file {$f->getPathname()} has a malformed name pattern.";
+			exit( 1 );
+		}
+
+		$slug    = $m['slug'];
+		$version = $m['version'];
+
+		if ( isset( $map[ $slug ] ) ) {
+			$map[ $slug ][ $version ] = $f->getPathname();
+		} else {
+			$map[ $slug ] = [ $version => $f->getPathname() ];
+		}
+
+		return $map;
+	}, [] );
+
+	// Pick a random number of plugins.
+	$number = max( 2, random_int( 1, count( array_keys( $by_slug ) ) ) );
+
+	// Pick n random plugins in random order.
+	$slugs = array_rand_keys( array_keys( $by_slug ), $number );
+
+	$picks = [];
+	foreach ( $slugs as $slug ) {
+		$version = array_rand( $by_slug[ $slug ], 1 );
+		$picks[] = [
+			'slug'    => $slug,
+			'version' => $version,
+			'zip'     => $by_slug[ $slug ][ $version ],
+		];
+	}
+
+	return $picks;
+}
+
+function plugin_wordpress_name( $plugin_slug ) {
+	$map = [
+		'the-events-calendar'      => 'the-events-calendar',
+		'event-tickets'            => 'event-tickets',
+		'advanced-post-manager'    => 'tribe-apm',
+		'events-community'         => 'tribe-community-events',
+		'events-community-tickets' => 'events-community-ticket',
+		'events-elasticsearch'     => 'events-elasticsearch',
+		'event-tickets-plus'       => 'event-tickets-plus',
+		'tribe-eventbrite'         => 'tribe-eventbrite',
+		'events-calendar-pro'      => 'events-calendar-pro',
+		'events-facebook-importer' => 'the-events-calendar-facebook-importer',
+		'tribe-filterbar'          => 'the-events-calendar-filterbar',
+		'tribe-ical-importer'      => 'the-events-calendar-ical-importer',
+		'image-widget'             => 'image-widget',
+		'image-widget-plus'        => 'image-widget-plus',
+	];
+
+	return isset( $map[ $plugin_slug ] ) ? $map[ $plugin_slug ] : $plugin_slug;
+}

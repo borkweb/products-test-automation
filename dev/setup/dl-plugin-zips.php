@@ -12,7 +12,7 @@ if ( 1 === $argc ) {
 	echo "\tphp dl-plugin-zips.php <number_versions> [<plugins>] [<licenses_file>]\n";
 	echo "\n";
 	echo "\t\033[32m<number_versions>\033[0m - an integer defining how many versions to download, e.g. 3.\n";
-	echo "\t\033[32m[<plugins>]\033[0m - a comma-separated list of plugins to download, e.g. 'the-events-calendar,events-pro'.\n";
+	echo "\t\033[32m[<plugins>]\033[0m - a comma-separated list of plugins to download, e.g. 'the-events-calendar,events-pro' or 'all'.\n";
 	echo "\t\033[32m[<licenses_file>]\033[0m - an optional .env format file that will provide the licenses for each plugin to download, e.g. '.env.licenses'.\n";
 	exit( 0 );
 }
