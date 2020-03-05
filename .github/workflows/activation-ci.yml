@@ -16,8 +16,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Pull WordPress image
-        run: docker pull wordpress:${{ matrix.wordpress }}-apache
       - name: Pull all the plugins
         run: php dev/setup/dl-plugin-zips.php 3 the-events-calendar,event-tickets,tribe-filterbar,event-tickets-plus
         env:
