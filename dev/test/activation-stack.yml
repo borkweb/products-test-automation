@@ -1,3 +1,5 @@
+# docker-compose configuration file used to run cross-activation tests.
+
 version: "3"
 
 networks:
@@ -13,10 +15,15 @@ services:
     networks:
       - test
     environment:
+      # The `test` database is always present.
       MYSQL_ROOT_PASSWORD: password
 
   wordpress:
+    # The WordPress version embedded in the container is not relevant.
+    # Docker image tags/version are not consistent or in sync w/ the WordPress ones and it's faster to re-install
+    # WordPress using wp-cli than pull yet another image.
     image: wordpress:latest
+    # Let's avoid user auth issues or messy chmod/chowns.
     user: "${UID}:${GID}"
     networks:
       - test
@@ -33,11 +40,13 @@ services:
 
   cli:
     image: wordpress:cli
+    # Let's avoid user auth issues or messy chmod/chowns.
     user: "${UID}:${GID}"
     networks:
       - test
     volumes:
       - wordpress:/var/www/html
+      # Paths are relative to the directory that contains this file, NOT the current working directory.
       - ./_plugin_store:/var/www/html/_plugin_store
 
   waiter:

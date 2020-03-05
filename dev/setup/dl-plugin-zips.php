@@ -1,5 +1,8 @@
 #!/usr/bin/env php
 <?php
+/**
+ * CI script to download the last n versions of some, or all, .org and premium plugins.
+ */
 
 require_once __DIR__ . '/src/utils.php';
 require_once __DIR__ . '/src/plugins.php';
@@ -23,6 +26,7 @@ $args = args( [
 	'licenses_file'
 ] );
 
+// Either read from the environment, in CI, or read it from the user input.
 parse_license_file( $args( 'licenses_file' ) );
 
 download_plugin_versions( plugin_versions( $args ) );

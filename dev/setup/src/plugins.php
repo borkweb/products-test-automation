@@ -1,9 +1,13 @@
 <?php
-
 /**
  * Plugin related functions for the build PHP scripts.
  */
 
+/**
+ * Returns the list of Modern Tribe .org plugins.
+ *
+ * @return array<string> A list of Modern Tribe .org hosted WordPress plugin slugs.
+ */
 function org_plugins() {
 	return [
 		'the-events-calendar',
@@ -13,14 +17,29 @@ function org_plugins() {
 	];
 }
 
+/**
+ * Returns the list of Modern Tribe premium plugins.
+ *
+ * @return array<string> A list of Modern Tribe premium WordPress plugin slugs.
+ */
 function premium_plugins() {
 	return array_keys( premium_plugins_license_keys_map() );
 }
 
+/**
+ * Returns the list of all Modern Tribe plugins, .org and premium.
+ *
+ * @return array<string> A list of all Modern Tribe WordPress plugin slugs.
+ */
 function all_plugins() {
 	return array_merge( org_plugins(), premium_plugins() );
 }
 
+/**
+ * Returns a map relating each premium plugin slug to the expected name of the env var that should contain its license.
+ *
+ * @return array<string,string> The plugin slug to expected license env var name map.
+ */
 function premium_plugins_license_keys_map() {
 	return [
 		'events-community'         => 'COMMUNITY_EVENTS_LICENSE',
@@ -40,6 +59,11 @@ function premium_plugins_license_keys_map() {
 	];
 }
 
+/**
+ * Returns a map relating each SaaS slug to the expected name of the env var that should contain its license.
+ *
+ * @return array<string,string> The SaaS slug to expected license env var name map.
+ */
 function saas_license_keys_map() {
 	return [
 		'event-aggregator' => 'EVENT_AGGREGATOR_LICENSE',
@@ -47,6 +71,13 @@ function saas_license_keys_map() {
 	];
 }
 
+/**
+ * Fetches and returns the last n versions of the specified plugins, both .org and premium plugins.
+ *
+ * @param callable $args A closure to provide the arguments.
+ *
+ * @return array<string,array> An array of each plugin slug versions.
+ */
 function plugin_versions( callable $args ) {
 	$plugins         = validate_plugins( parse_list( $args( 'plugins', all_plugins() ) ) );
 	$number_versions = $args( 'number_versions' );
@@ -59,8 +90,16 @@ function plugin_versions( callable $args ) {
 	return $org_plugins_versions + $premium_plugins_versions;
 }
 
-function org_plugins_versions( array $required_org_plugins = [], $number_versions = 3 ) {
-	if ( count( $required_org_plugins ) === 0 ) {
+/**
+ * Fetches and returns the last n versions of the specified .org plugins.
+ *
+ * @param array<string> $required_plugins A list of the required .org hosted plugins slugs.
+ * @param int           $number_versions  The number of last versions to fetch for each plugin.
+ *
+ * @return array<string,array> An array of each plugin slug versions.
+ */
+function org_plugins_versions( array $required_plugins = [], $number_versions = 3 ) {
+	if ( count( $required_plugins ) === 0 ) {
 		return [];
 	}
 
@@ -70,7 +109,7 @@ function org_plugins_versions( array $required_org_plugins = [], $number_version
 		'action'  => 'plugin_information',
 		'request' =>
 			[
-				'slugs' => $required_org_plugins
+				'slugs' => $required_plugins
 			]
 	] );
 
@@ -82,7 +121,7 @@ function org_plugins_versions( array $required_org_plugins = [], $number_version
 	}
 
 	$org_plugins_versions = array_combine(
-		$required_org_plugins,
+		$required_plugins,
 		array_map( static function ( $plugin_slug ) use ( $number_versions, $decoded_org_info ) {
 			if ( ! isset( $decoded_org_info[ $plugin_slug ] ) ) {
 				echo "\n.org plugin information for {$plugin_slug} is missing.";
@@ -97,12 +136,20 @@ function org_plugins_versions( array $required_org_plugins = [], $number_version
 
 			// The version array format is [<version> => <zip_url>].
 			return $versions;
-		}, $required_org_plugins )
+		}, $required_plugins )
 	);
 
 	return $org_plugins_versions;
 }
 
+/**
+ * Fetches and returns the last n versions of the specified premium plugins.
+ *
+ * @param array<string> $required_plugins A list of the required premium plugins slugs.
+ * @param int           $number_versions  The number of last versions to fetch for each plugin.
+ *
+ * @return array<string,array> An array of each plugin slug versions.
+ */
 function premium_plugin_versions( array $required_plugins = [], $number_versions = 3 ) {
 	if ( count( $required_plugins ) === 0 ) {
 		return [];
@@ -160,6 +207,13 @@ function premium_plugin_versions( array $required_plugins = [], $number_versions
 	return $required_plugins_versions;
 }
 
+/**
+ * Returns the absolute path, on the host machine, to the directory that contains the downloaded plugins.
+ *
+ * The function will create the directory first, if it does not exist.
+ *
+ * @return string The absolute path, on the host machine, to the directory that contains the downloaded plugins.
+ */
 function plugin_store() {
 	$plugin_store = getcwd() . '/dev/test/_plugin_store';
 	if ( ! is_dir( $plugin_store ) && ! mkdir( $plugin_store, 0777, true ) && ! is_dir( $plugin_store ) ) {
@@ -170,6 +224,13 @@ function plugin_store() {
 	return $plugin_store;
 }
 
+/**
+ * Validates the required plugin slugs, to make sure all are either .org or premium valid slugs.
+ *
+ * @param array<string> $plugins The plugin slugs to validate.
+ *
+ * @return array<string> The list of plugins, if valid.
+ */
 function validate_plugins( $plugins ) {
 	$not_plugins = array_diff( $plugins, all_plugins() );
 
@@ -182,6 +243,13 @@ function validate_plugins( $plugins ) {
 	return $plugins;
 }
 
+/**
+ * Returns a premium plugin license key, reading it from the environment.
+ *
+ * @param string $plugin_slug The slug of the premium plugin to read the license key for.
+ *
+ * @return string The premium plugin license key.
+ */
 function license_key( $plugin_slug ) {
 	$map = premium_plugins_license_keys_map();
 
@@ -201,6 +269,11 @@ function license_key( $plugin_slug ) {
 	return $license_key;
 }
 
+/**
+ * Downloads, in the plugin store directory, the specified plugin versions.
+ *
+ * @param array<string,array> $plugin_versions A map of plugin slugs and the required versions to download.
+ */
 function download_plugin_versions( array $plugin_versions ) {
 	$debug_info = array_map( 'array_keys', $plugin_versions );
 	echo "\n\n";
@@ -222,6 +295,15 @@ function download_plugin_versions( array $plugin_versions ) {
 	}
 }
 
+/**
+ * Returns a list of random plugins versions and files, parsing the content of the plugin store.
+ *
+ * @param string $dir The plugin store directory path.
+ *
+ * @return array<string,array> The random list of picked plugins and version information.
+ *
+ * @throws Exception If there's an issue reading the plugin store contents.
+ */
 function random_plugins( $dir ) {
 	$available_zips_iterator = new CallbackFilterIterator(
 		new FilesystemIterator( $dir, FilesystemIterator::SKIP_DOTS ),
@@ -279,6 +361,14 @@ function random_plugins( $dir ) {
 	return $picks;
 }
 
+/**
+ * Maps each plugin slug, from the zip/repo, to its WordPress name, this is the name the plugin will be identified with
+ * by WordPress.
+ *
+ * @param string $plugin_slug The slug of the plugin to return the WordPress name for.
+ *
+ * @return string The WordPress name of the plugin.
+ */
 function plugin_wordpress_name( $plugin_slug ) {
 	$map = [
 		'the-events-calendar'      => 'the-events-calendar',

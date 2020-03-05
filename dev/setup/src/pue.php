@@ -3,6 +3,14 @@
  * PUE related functions.
  */
 
+/**
+ * Return the complete URL to the PUE service for an endpoint and arguments.
+ *
+ * @param string        $endpoint   The endpoint to fetch the information for.
+ * @param array<string> $query_args The list of query arguments to append to the service URL.
+ *
+ * @return string The complete, and hashed w/ secret, PUE service URL.
+ */
 function pue_url( $endpoint, array $query_args = [] ) {
 	$pue_signed_secret = getenv( 'PUE_SIGNED_SECRET' );
 	$pue_url           = getenv( 'PUE_URL' );

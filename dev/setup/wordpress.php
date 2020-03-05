@@ -5,6 +5,14 @@
 
 require_once __DIR__ . '/src/utils.php';
 
+/**
+ * Returns a WordPress version, picked at random among the last n.
+ *
+ * @param int $number_versions How many WordPress versions to choose between.
+ *                             The "nightly" version is always added.
+ *
+ * @return string The randomly picked WordPress version.
+ */
 function random_wordpress_version( $number_versions = 3 ) {
 	$versions = wordpress_fetch_versions();
 
@@ -18,6 +26,11 @@ function random_wordpress_version( $number_versions = 3 ) {
 	return $versions[ array_rand( array_slice( $all_versions, 0, $number_versions ), 1 ) ]['version'];
 }
 
+/**
+ * Fetches the last WordPress versions from the WordPress API.
+ *
+ * @return array<array> An array of WordPress versions.
+ */
 function wordpress_fetch_versions() {
 	echo "\nFetching WordPress version information...";
 
