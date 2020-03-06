@@ -34,10 +34,14 @@ function randomly_activate_plugins( $epochs ) {
 		check_status_or_exit( $list );
 		the_process_output( $list );
 
+		$activated = [];
+		$debug     = "\n\nActivation path: \n";
+
 		foreach ( $plugins as $plugin ) {
-			$plugin_slug = plugin_wordpress_name( $plugin['slug'] );
-			$activate    = $cli( [ 'plugin', 'activate', $plugin_slug, '--debug' ] );
-			check_status_or_exit( $activate );
+			$activated[ $plugin['slug'] ] = $plugin['version'];
+			$plugin_slug                  = plugin_wordpress_name( $plugin['slug'] );
+			$activate                     = $cli( [ 'plugin', 'activate', $plugin_slug, '--debug' ] );
+			check_status_or_exit( $activate, $debug . "\n{$plugin['slug']}: v{$plugin['version']}" );
 		}
 	}
 }

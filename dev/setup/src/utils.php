@@ -121,9 +121,10 @@ function array_rand_keys( array $array, $num_req = 1 ) {
 /**
  * Checks the status of a process, or `exit`s.
  *
- * @param callable $process The process to check.
+ * @param callable    $process The process to check.
+ * @param string|null $message An optional message to print after the output.
  */
-function check_status_or_exit( callable $process ) {
+function check_status_or_exit( callable $process, $message = null ) {
 	if ( 0 !== (int) $process( 'status' ) ) {
 		echo "\nProcess status is not 0, output: \n\n" . implode( "\n", $process( 'output' ) );
 		exit ( 1 );

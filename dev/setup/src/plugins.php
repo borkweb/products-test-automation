@@ -373,7 +373,7 @@ function plugin_wordpress_name( $plugin_slug ) {
 	$map = [
 		'the-events-calendar'      => 'the-events-calendar',
 		'event-tickets'            => 'event-tickets',
-		'advanced-post-manager'    => 'tribe-apm',
+		'advanced-post-manager'    => 'advanced-post-manager',
 		'events-community'         => 'the-events-calendar-community-events',
 		'events-community-tickets' => 'the-events-calendar-community-events-tickets',
 		'events-elasticsearch'     => 'events-elasticsearch',
