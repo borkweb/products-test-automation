@@ -21,7 +21,13 @@ function randomly_activate_plugins( $epochs ) {
 
 		echo "\nThe following plugins will be activated:\n" . json_encode( $plugins, JSON_PRETTY_PRINT );
 
-		check_status_or_exit( $cli( [ 'plugin', 'deactivate', '--all' ] ) );
+		$list = $cli( array_merge( [ 'plugin', 'list', '--format=csv', '--fields=name,version' ] ) );
+		check_status_or_exit( $list );
+
+		check_status_or_exit(
+			$cli( [ 'plugin', 'deactivate', '--all' ] ),
+			"\n\nFatality! The following deactivation path has issues: \n" . implode( "\n", $list( 'output' ) )
+		);
 
 		foreach ( $plugins as $plugin ) {
 			$plugin_zip = wordpress_container_root_dir(
