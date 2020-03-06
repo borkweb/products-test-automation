@@ -26,7 +26,9 @@ function randomly_activate_plugins( $epochs ) {
 
 		check_status_or_exit(
 			$cli( [ 'plugin', 'deactivate', '--all' ] ),
-			"\n\nFatality! The following deactivation context has issues: \n" . implode( "\n", $list( 'output' ) )
+			"\n\nFatality!\n"
+			. the_fatality()
+			. "\nThe following deactivation context has issues: \n" . implode( "\n", $list( 'output' ) )
 		);
 
 		foreach ( $plugins as $plugin ) {
@@ -41,7 +43,7 @@ function randomly_activate_plugins( $epochs ) {
 		the_process_output( $list );
 
 		$activated = [];
-		$debug     = "\n\nFatality! The following activation path has issues: \n";
+		$debug = "\n\nFatality!\n" . the_fatality() . "\nThe following activation path has issues: \n";
 
 		foreach ( $plugins as $plugin ) {
 			$activated[ $plugin['slug'] ] = $plugin['version'];
