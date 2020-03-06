@@ -10,6 +10,8 @@ require_once __DIR__ . '/../setup/src/plugins.php';
  * Randomly activate some plugins found in the plugin store, in random order and versions.
  *
  * @param int $epochs The number of times to run the random activation.
+ *
+ * @throws Exception If there's an issue reading the plugin store contents.
  */
 function randomly_activate_plugins( $epochs ) {
 	$cli = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', 'cli', '--allow-root' ] );
@@ -34,7 +36,8 @@ function randomly_activate_plugins( $epochs ) {
 
 		foreach ( $plugins as $plugin ) {
 			$plugin_slug = plugin_wordpress_name( $plugin['slug'] );
-			check_status_or_exit( $cli( array_merge( [ 'plugin', 'activate', $plugin_slug, '--debug' ] ) ) );
+			$activate    = $cli( [ 'plugin', 'activate', $plugin_slug, '--debug' ] );
+			check_status_or_exit( $activate );
 		}
 	}
 }

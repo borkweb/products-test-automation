@@ -317,8 +317,8 @@ function random_plugins( $dir ) {
 	$available_zips = iterator_to_array( $available_zips_iterator );
 
 	if ( 0 === count( $available_zips ) ) {
-		echo "\nNo plugin zips available" .
-		     exit( 1 );
+		echo "\nNo plugin zips available";
+		exit( 1 );
 	}
 
 	$by_slug = array_reduce( $available_zips, static function ( array $map, SplFileInfo $f ) {
