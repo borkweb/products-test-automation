@@ -8,18 +8,31 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        wordpress: [ "5.3" ]
-    name: Test activation on WP ${{ matrix.wordpress }}
+    env:
+      EPOCHS: 3
+      WP_NUMBER_VERSIONS: 3
+      PLUGINS_NUMBER_VERSIONS: 3
+    name: Test randome activation
     runs-on: ubuntu-18.04
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Pull latest WordPress container version
         run: docker pull wordpress:latest
-      - name: Pull the plugins (last 3 versions)
-        run: php dev/setup/dl-plugin-zips.php 3 the-events-calendar,event-tickets,tribe-filterbar,event-tickets-plus
+
+      - name: Set today date
+        run: echo "::set-env name=TODAY_DATE::.github/workflows/today_date.sh"
+
+      - name: Restore plugin store from cache
+        uses: actions/cache@v1
+        with:
+          path: dev/test/_plugin_store
+          key: ${{ env.TODAY_DATE }}-${{ hashFiles('.github/workflows/activation-test-plugins') }}-${{ env.PLUGINS_NUMBER_VERSIONS }}-plugin-store
+
+      - name: Pull the plugins
+        run: test -d dev/test/_plugin_store || php dev/setup/dl-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "echo $(<.github/workflows/activation-test-plugins)"
         env:
           EVENTS_CALENDAR_PRO_LICENSE: ${{ secrets.EVENTS_CALENDAR_PRO_LICENSE }}
           EVENT_TICKETS_PLUS_LICENSE: ${{ secrets.EVENT_TICKETS_PLUS_LICENSE }}
@@ -31,5 +44,6 @@ jobs:
           IMAGE_WIDGET_PLUS_LICENSE: ${{ secrets.IMAGE_WIDGET_PLUS_LICENSE }}
           PUE_URL: ${{ secrets.PUE_URL }}
           PUE_SIGNED_SECRET: ${{ secrets.PUE_SIGNED_SECRET }}
-      - name: Randomly activate plugins (3 epochs, last 3 WP versions)
-        run: php dev/randomly-activate-plugins.php 3 3
+
+      - name: Randomly activate plugins
+        run: php dev/randomly-activate-plugins.php ${{ env.EPOCHS }} ${{ env.WP_NUMBER_VERSIONS }}
