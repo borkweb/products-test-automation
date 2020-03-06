@@ -55,5 +55,8 @@ check_status_or_exit( $cli ( [
 	'--force',
 ] ) );
 
+// Delete all plugins that might come w/ the default WordPress installation.
+check_status_or_exit( $cli ( [ 'plugin', 'delete', '--all' ] ) );
+
 // Spin the wheel.
 randomly_activate_plugins( (int) $args( 'epochs', 3 ) );
