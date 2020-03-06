@@ -375,7 +375,7 @@ function plugin_wordpress_name( $plugin_slug ) {
 		'event-tickets'            => 'event-tickets',
 		'advanced-post-manager'    => 'tribe-apm',
 		'events-community'         => 'the-events-calendar-community-events',
-		'events-community-tickets' => 'events-community-tickets',
+		'events-community-tickets' => 'the-events-calendar-community-events-tickets',
 		'events-elasticsearch'     => 'events-elasticsearch',
 		'event-tickets-plus'       => 'event-tickets-plus',
 		'tribe-eventbrite'         => 'the-events-calendar-eventbrite-tickets',
