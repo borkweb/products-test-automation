@@ -25,8 +25,9 @@ jobs:
       - name: Set today date
         run: echo "::set-env name=TODAY_DATE::$(.github/workflows/today_date.sh)"
 
+
       - name: Restore plugin store from cache
-        uses: actions/cache@v1
+        uses: gerbal/always-cache@v1.0.3
         with:
           path: dev/test/_plugin_store
           key: ${{ env.TODAY_DATE }}-${{ hashFiles('.github/workflows/activation-test-plugins') }}-${{ env.PLUGINS_NUMBER_VERSIONS }}-plugin-store
