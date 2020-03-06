@@ -30,7 +30,7 @@ function randomly_activate_plugins( $epochs ) {
 			check_status_or_exit( $cli( [ 'plugin', 'install', $plugin_zip, '--force' ] ) );
 		}
 
-		$list = $cli( array_merge( [ 'plugin', 'list' ] ) );
+		$list = $cli( array_merge( [ 'plugin', 'list','--format=csv', '--fields=name,version' ] ) );
 		check_status_or_exit( $list );
 		the_process_output( $list );
 
