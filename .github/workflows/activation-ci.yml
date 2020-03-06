@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     env:
-      EPOCHS: 3
+      EPOCHS: 10
       WP_NUMBER_VERSIONS: 3
       PLUGINS_NUMBER_VERSIONS: 3
     name: Test random activation
