@@ -12,7 +12,7 @@ jobs:
       EPOCHS: 3
       WP_NUMBER_VERSIONS: 3
       PLUGINS_NUMBER_VERSIONS: 3
-    name: Test randome activation
+    name: Test random activation
     runs-on: ubuntu-18.04
 
     steps:
@@ -32,7 +32,7 @@ jobs:
           key: ${{ env.TODAY_DATE }}-${{ hashFiles('.github/workflows/activation-test-plugins') }}-${{ env.PLUGINS_NUMBER_VERSIONS }}-plugin-store
 
       - name: Pull the plugins
-        run: test -d dev/test/_plugin_store || php dev/setup/dl-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "echo $(<.github/workflows/activation-test-plugins)"
+        run: test -d dev/test/_plugin_store || php dev/setup/dl-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)"
         env:
           EVENTS_CALENDAR_PRO_LICENSE: ${{ secrets.EVENTS_CALENDAR_PRO_LICENSE }}
           EVENT_TICKETS_PLUS_LICENSE: ${{ secrets.EVENT_TICKETS_PLUS_LICENSE }}
