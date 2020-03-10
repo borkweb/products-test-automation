@@ -53,3 +53,40 @@ function wordpress_fetch_versions() {
 
 	return $offers;
 }
+
+/**
+ * Prepares the WordPress installation installing a specific version of WordPress.
+ *
+ * @param string|null The version of WordPress to install, e.g. `5.3.2` or `nightly`.
+ */
+function prepare_wordpress( $wordpress_version  = 'nightly' ) {
+	$docker_compose = docker_compose( [ '-f', 'dev/test/activation-stack.yml' ] );
+	$cli            = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'cli', '--allow-root' ] );
+	$waiter         = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'waiter' ] );
+
+	// Start the WordPress container.
+	check_status_or_exit( $docker_compose( [ 'up', '-d', 'wordpress' ] ) );
+
+	// Wait for WordPress container to come up.
+	check_status_or_wait( $waiter() );
+
+	// Install WordPress when it's up and running.
+	check_status_or_exit( $cli( [
+		'core',
+		'install',
+		'--url=http://tribe.localhost',
+		'--title="Activation Tests"',
+		'--admin_user=admin',
+		'--admin_password=admin',
+		'--admin_email=admin@tribe.localhost',
+		'--skip-email',
+	] ) );
+
+	// Force the installation of a random WordPress version.
+	check_status_or_exit( $cli ( [
+		'core',
+		'update',
+		'--version=' . $wordpress_version,
+		'--force',
+	] ) );
+}

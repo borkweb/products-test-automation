@@ -24,39 +24,7 @@ $args = args( [
 	'wp_number_versions'
 ] );
 
-
-$docker_compose = docker_compose( [ '-f', 'dev/test/activation-stack.yml' ] );
-$cli            = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'cli', '--allow-root' ] );
-$waiter         = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'waiter' ] );
-
-// Start the WordPress container.
-check_status_or_exit( $docker_compose( [ 'up', '-d', 'wordpress' ] ) );
-
-// Wait for WordPress container to come up.
-check_status_or_wait( $waiter() );
-
-// Install WordPress when it's up and running.
-check_status_or_exit( $cli( [
-	'core',
-	'install',
-	'--url=http://tribe.localhost',
-	'--title="Activation Tests"',
-	'--admin_user=admin',
-	'--admin_password=admin',
-	'--admin_email=admin@tribe.localhost',
-	'--skip-email',
-] ) );
-
-// Force the installation of a random WordPress version.
-check_status_or_exit( $cli ( [
-	'core',
-	'update',
-	'--version=' . random_wordpress_version( $args( 'wp_number_versions', 5 ) ),
-	'--force',
-] ) );
-
-// Delete all plugins that might come w/ the default WordPress installation.
-check_status_or_exit( $cli ( [ 'plugin', 'delete', '--all' ] ) );
+prepare_wordpress( random_wordpress_version( $args( 'wp_number_versions', 5 ) ) );
 
 // Spin the wheel.
 randomly_activate_plugins( (int) $args( 'epochs', 3 ) );
