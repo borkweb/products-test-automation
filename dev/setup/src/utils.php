@@ -124,6 +124,8 @@ function array_rand_keys( array $array, $num_req = 1 ) {
  * @param callable    $process The process to check.
  * @param mixed|null $message An optional message to print after the output, if the message is not a string, then
  *                            the message data will be encoded and printed using JSON.
+ *
+ * @return callable The process handling closure.
  */
 function check_status_or_exit( callable $process, $message = null ) {
 	if ( 0 !== (int) $process( 'status' ) ) {
@@ -135,6 +137,8 @@ function check_status_or_exit( callable $process, $message = null ) {
 		}
 		exit ( 1 );
 	}
+
+	return $process;
 }
 
 /**
@@ -142,6 +146,8 @@ function check_status_or_exit( callable $process, $message = null ) {
  *
  * @param callable $process The process to check.
  * @param int      $timeout The timeout, in seconds.
+ *
+ * @return callable The process handling closure.
  */
 function check_status_or_wait( callable $process, $timeout = 10 ) {
 	$end = time() + (int) $timeout;
@@ -150,10 +156,11 @@ function check_status_or_wait( callable $process, $timeout = 10 ) {
 			echo "\nProcess status is not 0, waiting...";
 			sleep( 2 );
 		} else {
-			return;
+			return $process;
 		}
 	}
-	check_status_or_exit( $process );
+
+	return check_status_or_exit( $process );
 }
 
 /**
