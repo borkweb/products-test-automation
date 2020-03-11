@@ -58,14 +58,15 @@ function wordpress_fetch_versions() {
  * Prepares the WordPress installation installing a specific version of WordPress.
  *
  * @param string|null The version of WordPress to install, e.g. `5.3.2` or `nightly`.
+ * @param bool $wp_container The name of the WordPress container to use.
  */
-function prepare_wordpress( $wordpress_version  = 'nightly' ) {
+function prepare_wordpress( $wordpress_version  = 'nightly', $wp_container = 'wordpress' ) {
 	$docker_compose = docker_compose( [ '-f', 'dev/test/activation-stack.yml' ] );
 	$cli            = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'cli', '--allow-root' ] );
 	$waiter         = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'waiter' ] );
 
 	// Start the WordPress container.
-	check_status_or_exit( $docker_compose( [ 'up', '-d', 'wordpress' ] ) );
+	check_status_or_exit( $docker_compose( [ 'up', '-d', $wp_container] ) );
 
 	// Wait for WordPress container to come up.
 	check_status_or_wait( $waiter() );

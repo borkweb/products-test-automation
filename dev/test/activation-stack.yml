@@ -36,6 +36,29 @@ services:
     volumes:
       - wordpress:/var/www/html
 
+  wordpress_debug:
+    # The WordPress version embedded in the container is not relevant.
+    # Docker image tags/version are not consistent or in sync w/ the WordPress ones and it's faster to re-install
+    # WordPress using wp-cli than pull yet another image.
+    image: wordpress:latest
+    networks:
+      - test
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: password
+      # This db is created by the db container at startup.
+      WORDPRESS_DB_NAME: test
+      WORDPRESS_DB_HOST: db
+      # Pull plugins from the plugin store to allow debugging on unzipped file.
+      WORDPRESS_CONFIG_EXTRA: |
+        define( 'WP_PLUGIN_DIR', '/var/www/html/_plugin_store' );
+    volumes:
+      - wordpress:/var/www/html
+      # Paths are relative to the directory that contains this file, NOT the current working directory.
+      - ./_plugin_store:/var/www/html/_plugin_store
+
   cli:
     image: wordpress:cli
     # UID 33 and GID 33 map to the `xfs` user, which is the one that can actually manipulate files.
