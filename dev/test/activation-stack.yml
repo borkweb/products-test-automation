@@ -23,8 +23,6 @@ services:
     # Docker image tags/version are not consistent or in sync w/ the WordPress ones and it's faster to re-install
     # WordPress using wp-cli than pull yet another image.
     image: wordpress:latest
-    # Let's avoid user auth issues or messy chmod/chowns.
-    user: "${UID}:${GID}"
     networks:
       - test
     depends_on:
@@ -40,8 +38,6 @@ services:
 
   cli:
     image: wordpress:cli
-    # Let's avoid user auth issues or messy chmod/chowns.
-    user: "${UID}:${GID}"
     networks:
       - test
     volumes:

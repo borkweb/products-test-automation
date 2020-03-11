@@ -1,0 +1,13 @@
+# docker-compose configuration override file used to run cross-activation tests in a Linux environment.
+
+version: "3"
+
+services:
+
+  wordpress:
+    # Let's avoid user auth issues or messy chmod/chowns.
+    user: "${UID}:${GID}"
+
+  cli:
+    # Let's avoid user auth issues or messy chmod/chowns.
+    user: "${UID}:${GID}"

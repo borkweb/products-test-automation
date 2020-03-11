@@ -6,6 +6,26 @@
 require_once __DIR__ . '/src/utils.php';
 
 /**
+ * Returns the current Operating System family.
+ *
+ * @return string The human-readable name of the OS PHP is running on. One of `Linux`, `macOS`, `Windows`, `Solaris`,
+ *                `BSD` or `Unknown`.
+ */
+function os() {
+	$map    = [
+		'win' => 'Windows',
+		'dar' => 'macOS',
+		'lin' => 'Linux',
+		'bsd' => 'BSD',
+		'sol' => 'Solaris',
+	];
+
+	$key = strtolower( substr( PHP_OS, 0, 3 ) );
+
+	return isset( $map[ $key ] ) ? $map[ $key ] : 'Unknown';
+}
+
+/**
  * Curried docker-compose wrapper.
  *
  * @param array<string> $options A list of options to initialize the wrapper.
@@ -14,6 +34,10 @@ require_once __DIR__ . '/src/utils.php';
  */
 function docker_compose( array $options = [] ) {
 	setup_id();
+
+	if ( 'Linux' === os() ) {
+		$options = array_merge( [ '-f', 'dev/test/activation-stack-linux-override.yml' ], $options );
+	}
 
 	return static function ( array $command = [] ) use ( $options ) {
 		$command = 'docker-compose ' . implode( ' ', $options ) . ' ' . implode( ' ', $command );
