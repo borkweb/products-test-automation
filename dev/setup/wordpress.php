@@ -69,6 +69,8 @@ function prepare_wordpress( $wordpress_version  = 'nightly' ) {
 
 	// Wait for WordPress container to come up.
 	check_status_or_wait( $waiter() );
+	// The db is available, but it will lag a bit behind, let's give it some time.
+	sleep( 3 );
 
 	// Install WordPress when it's up and running.
 	check_status_or_exit( $cli( [
