@@ -38,6 +38,9 @@ services:
 
   cli:
     image: wordpress:cli
+    # UID 33 and GID 33 map to the `xfs` user, which is the one that can actually manipulate files.
+    # See: https://github.com/docker-library/wordpress/issues/256
+    user: "33:33"
     networks:
       - test
     volumes:
