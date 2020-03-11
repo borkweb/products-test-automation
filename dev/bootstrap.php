@@ -10,6 +10,7 @@ require_once __DIR__ . '/setup/src/pue.php';
 require_once __DIR__ . '/setup/src/plugins.php';
 require_once __DIR__ . '/setup/docker.php';
 require_once __DIR__ . '/setup/wordpress.php';
+require_once __DIR__ . '/setup/shell.php';
 
 echo implode( PHP_EOL, [
 	'The following source files have been loaded:',
@@ -18,6 +19,7 @@ echo implode( PHP_EOL, [
 	'* dev/setup/src/plugins.php',
 	'* dev/setup/docker.php',
 	'* dev/setup/wordpress.php',
+	'* dev/setup/shell.php',
 	PHP_EOL,
 	'You will be able to use any of the functions defined in these files.',
 	PHP_EOL

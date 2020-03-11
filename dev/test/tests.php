@@ -14,7 +14,7 @@ require_once __DIR__ . '/../setup/src/plugins.php';
  * @throws Exception If there's an issue reading the plugin store contents.
  */
 function randomly_activate_plugins( $epochs ) {
-	$cli = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', 'cli', '--allow-root' ] );
+	$cli = cli();
 
 	for ( $i = 1; $i <= $epochs; $i ++ ) {
 		$plugins = random_plugins( plugin_store() );

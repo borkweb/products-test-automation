@@ -43,7 +43,7 @@ services:
     volumes:
       - wordpress:/var/www/html
       # Paths are relative to the directory that contains this file, NOT the current working directory.
-      - ./_plugin_store:/var/www/html/_plugin_store
+      - ./_plugin_store:/_plugin_store
 
   waiter:
     image: theypsilon/waiter-mysql:0.1.23

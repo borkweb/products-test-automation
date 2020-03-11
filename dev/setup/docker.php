@@ -51,6 +51,10 @@ function docker_compose( array $options = [] ) {
 				return (int) $status;
 			}
 
+			if ( 'string_output' === $what ) {
+				return trim( implode( PHP_EOL, $output ) );
+			}
+
 			return $output;
 		};
 	};
@@ -65,4 +69,13 @@ function docker_compose( array $options = [] ) {
  */
 function wordpress_container_root_dir( $path = '/' ) {
 	return '/var/www/html/' . ltrim( $path, '\\/' );
+}
+
+/**
+ * Sets up and returns a wp-cli pre-process, ready to run wp-cli commands in the stack.
+ *
+ * @return Closure The wp-cli pre-process, ready to accept an array of commands to run, the `wp` command is not required.
+ */
+function cli() {
+	return docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', 'cli', '--allow-root' ] );
 }
