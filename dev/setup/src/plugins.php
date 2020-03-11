@@ -225,6 +225,37 @@ function plugin_store() {
 }
 
 /**
+ * Returns the absolute path, on the host machine, to a plugin zip file provided its name (slug) and version.
+ *
+ * @param string $name    The plugin slug or name.
+ * @param string $version The version to return the zip file path for.
+ *
+ * @return string The absolute path, on the host machine, to the plugin zip file.
+ */
+function plugin_zip_file( $name, $version ) {
+	$path = plugin_store() . '/' . $name . '-' . $version . '.zip';
+	if ( ! file_exists( $path ) ) {
+		echo "\nPlugin zip file ${path} does not exist.";
+		exit( 1 );
+	}
+
+	return $path;
+}
+
+/**
+ * Installs a plugin in a specific version, overriding any previously installed version, from the plugin store.
+ *
+ * @param string $name    The name of the plugin to install.
+ * @param string $version The version of the plugin to install.
+ */
+function install_plugin( $name, $version ) {
+	$plugin_zip = wordpress_container_root_dir(
+		'_plugin_store/' . relative_path( plugin_store(), plugin_zip_file( $name, $version ) )
+	);
+	check_status_or_exit( cli()( [ 'plugin', 'install', $plugin_zip, '--force', '--debug' ] ) )( 'string_output' );
+}
+
+/**
  * Validates the required plugin slugs, to make sure all are either .org or premium valid slugs.
  *
  * @param array<string> $plugins The plugin slugs to validate.
