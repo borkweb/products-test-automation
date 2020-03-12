@@ -121,7 +121,7 @@ function array_rand_keys( array $array, $num_req = 1 ) {
 /**
  * Checks the status of a process, or `exit`s.
  *
- * @param callable    $process The process to check.
+ * @param callable   $process The process to check.
  * @param mixed|null $message An optional message to print after the output, if the message is not a string, then
  *                            the message data will be encoded and printed using JSON.
  *
