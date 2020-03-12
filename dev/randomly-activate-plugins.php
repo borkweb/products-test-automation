@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * CI script to randomly activate plugins previously downloaded using the `dev/setup/dl-plugins-zip.php` script.
+ * CI script to randomly activate plugins previously downloaded using the `dev/setup/download-plugins-zip.php` script.
  */
 
 require_once __DIR__ . '/setup/docker.php';
