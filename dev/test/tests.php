@@ -22,7 +22,7 @@ function randomly_activate_plugins( $epochs ) {
 
 		echo "\nThe following plugins will be activated:\n" . json_encode( $plugins, JSON_PRETTY_PRINT );
 
-		$list = $cli( array_merge( [ 'plugin', 'list', '--format=json', '--status=active', '--fields=name,version' ] ) );
+		$list = $cli( array_merge( [ 'plugin', 'list', '--format=csv', '--status=active', '--fields=name,version' ] ) );
 		check_status_or_exit( $list );
 
 		check_status_or_exit(
