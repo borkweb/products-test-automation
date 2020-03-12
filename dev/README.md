@@ -45,24 +45,24 @@ The script will download the last 5 versions of each plugin in the `dev/test/_pl
 
 When the tests fail during the activation phase you will see an error message detailing the WordPress and "activation path" used in the tests.  
 
-The "activation path" means that installing the plugins in those specific versions and activating them in that specific order, will trigger a fatal error.
+The "activation path" means that installing the plugins with those specific versions and activating them in that specific order, will trigger a fatal error.
 
-As an example let's say the activation failed w/ the following scenario:
+As an example, let's say the activation failed w/ the following scenario:
 * WordPress version `5.3.2`
 * `image-widget` version `4.4.5`
 * `the-events-calendar` version `5.0.2.1`
 * `events-community-tickets` version `4.7.1`
 
-The test infrastructure comes packed with a custom PHP interactive shell you can use to run any function the tests use.  
+The test infrastructure comes packed with a custom PHP interactive shell that you can use to run any function the tests use.  
 Run `sh dev/php-shell.sh` to start it; any command shown below is actually a command you would run in this shell.
 
-The following command will spin up the `wordpress_debug` container, install a clean version of WordPress in it and prepare it for the tests:
+The following command will spin up the `wordpress_debug` container, install a clean version of WordPress in it, and prepare it for the tests:
 
 ```php
 prepare_wordpress('5.3.2','wordpress_debug');
 ```
 
-Next let's install, using the the PHP interactive shell, the specific version of each plugin:
+Next, let's install the specific version of each plugin using the PHP interactive shell:
 
 ```php
 install_plugin('image-wigdet','4.4.5');
