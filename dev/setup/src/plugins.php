@@ -3,6 +3,8 @@
  * Plugin related functions for the build PHP scripts.
  */
 
+require_once __DIR__ . '/nightly.php';
+
 /**
  * Returns the list of Modern Tribe .org plugins.
  *
@@ -86,6 +88,9 @@ function plugin_versions( callable $args ) {
 	$required_premium_plugins = array_intersect( $plugins, premium_plugins() );
 	$org_plugins_versions     = org_plugins_versions( $required_org_plugins, $number_versions );
 	$premium_plugins_versions = premium_plugin_versions( $required_premium_plugins, $number_versions );
+	if ( $args( 'branch' ) ) {
+
+	}
 
 	return $org_plugins_versions + $premium_plugins_versions;
 }
@@ -339,7 +344,8 @@ function random_plugins( $dir ) {
 	$available_zips_iterator = new CallbackFilterIterator(
 		new FilesystemIterator( $dir, FilesystemIterator::SKIP_DOTS ),
 		static function ( SplFileInfo $f ) {
-			$plugin_zip_pattern = '/[\\w_-]+-[0-9\\.]+\\.zip$/uis';
+			// Either a semantic version or the nightly/dev hash.
+			$plugin_zip_pattern = '/[\\w_-]+-([0-9\\.]+|dev-[\\w]+)\\.zip$/uis';
 
 			return $f->isFile() && preg_match( $plugin_zip_pattern, $f->getBasename() );
 		}
@@ -353,7 +359,7 @@ function random_plugins( $dir ) {
 	}
 
 	$by_slug = array_reduce( $available_zips, static function ( array $map, SplFileInfo $f ) {
-		$plugin_zip_pattern = '/(?<slug>[\\w_-]+)-(?<version>[0-9\\.]+)$/uis';
+		$plugin_zip_pattern = '/(?<slug>[\\w_-]+)-(?<version>([0-9\\.]+|dev-[\\w]+))$/uis';
 		preg_match( $plugin_zip_pattern, $f->getBasename( '.zip' ), $m );
 
 		if ( ! isset( $m['slug'], $m['version'] ) ) {
@@ -419,4 +425,38 @@ function plugin_wordpress_name( $plugin_slug ) {
 	];
 
 	return isset( $map[ $plugin_slug ] ) ? $map[ $plugin_slug ] : $plugin_slug;
+}
+
+/**
+ * Returns a map of the available plugins, and their available nightly builds, for a branch.
+ *
+ * @param callable $args A closure providing the call arguments.
+ *
+ * @return array<string,array> A map of each plugin and the available nightly builds.
+ */
+function plugin_nightly_builds( callable $args ) {
+	$branch_nightly_builds = nightly_builds( $args( 'branch' ), $args( 'licenses_file' ) );
+
+	foreach ( $branch_nightly_builds as $branch => $branch_builds ) {
+		foreach ( $branch_builds as $plugin_slug => $build_data ) {
+			if ( ! empty( $build_data['build_error'] ) ) {
+				continue;
+			}
+
+			if ( ! isset( $build_data['download_url'], $build_data['build_hash'] ) ) {
+				continue;
+			}
+
+			$download_url = $build_data['download_url'];
+			$version      = 'dev-' . $build_data['build_hash'];
+
+			if ( isset( $map[ $plugin_slug ] ) ) {
+				$map[ $plugin_slug ][ $version ] = $download_url;
+			} else {
+				$map[ $plugin_slug ] = [ $version => $download_url ];
+			}
+		}
+	}
+
+	return $map;
 }

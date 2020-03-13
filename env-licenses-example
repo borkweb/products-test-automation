@@ -27,3 +27,5 @@ PROMOTER_LICENSE=########################################
 PUE_URL=http://pue.tri.be/api/plugins/v2/
 PUE_SIGNED_SECRET=################################################################
 
+# Nightly builds, ask in Slack for this
+NIGHTLY_SECRET=################################################################

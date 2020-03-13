@@ -8,6 +8,7 @@
 require_once __DIR__ . '/setup/src/utils.php';
 require_once __DIR__ . '/setup/src/pue.php';
 require_once __DIR__ . '/setup/src/plugins.php';
+require_once __DIR__ . '/setup/src/nightly.php';
 require_once __DIR__ . '/setup/docker.php';
 require_once __DIR__ . '/setup/wordpress.php';
 require_once __DIR__ . '/setup/shell.php';

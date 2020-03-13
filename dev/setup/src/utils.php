@@ -57,9 +57,10 @@ function curl_get( $url, array $query_args = [] ) {
 /**
  * Parses a provided license file and puts into the env, if any.
  *
- * @param string $licenses_file The path to the licenses file to parse.
+ * @param string|null $licenses_file The path to the licenses file to parse or `null` to read licenses from the
+ *                                   environment variables.
  */
-function parse_license_file( $licenses_file ) {
+function parse_license_file( $licenses_file = null ) {
 	if ( null !== $licenses_file ) {
 		load_env_file( $licenses_file );
 	} else {

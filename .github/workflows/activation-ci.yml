@@ -12,7 +12,10 @@ jobs:
       EPOCHS: 10
       WP_NUMBER_VERSIONS: 3
       PLUGINS_NUMBER_VERSIONS: 3
-    name: Test random activation
+    strategy:
+      matrix:
+        branch: [ 'release/B20.03' ]
+    name: Test random activation for ${{ matrix.branch }}
     runs-on: ubuntu-18.04
 
     steps:
@@ -25,15 +28,19 @@ jobs:
       - name: Set today date
         run: echo "::set-env name=TODAY_DATE::$(.github/workflows/today_date.sh)"
 
+      - name: Set the nightly build hash
+        run: echo "::set-env name=NIGHTLY_BUILD_HASH::$(.github/workflows/nightly_build_hash.sh ${{ matrix.branch }})"
 
       - name: Restore plugin store from cache
         uses: gerbal/always-cache@v1.0.3
         with:
           path: dev/test/_plugin_store
-          key: ${{ env.TODAY_DATE }}-${{ hashFiles('.github/workflows/activation-test-plugins') }}-${{ env.PLUGINS_NUMBER_VERSIONS }}-plugin-store
+          key: ${{ env.TODAY_DATE }}-${{ env.NIGHTLY_BUILD_HASH }}-${{ hashFiles('.github/workflows/activation-test-plugins') }}-${{ env.PLUGINS_NUMBER_VERSIONS }}-plugin-store
 
       - name: Pull the plugins
-        run: test -d dev/test/_plugin_store || php dev/setup/dl-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)"
+        run: |
+          test -d dev/test/_plugin_store || php dev/setup/download-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)"
+          test -d dev/test/_plugin_store || php dev/setup/download-plugin-nightly-zips.php ${{ matrix.branch }}
         env:
           EVENTS_CALENDAR_PRO_LICENSE: ${{ secrets.EVENTS_CALENDAR_PRO_LICENSE }}
           EVENT_TICKETS_PLUS_LICENSE: ${{ secrets.EVENT_TICKETS_PLUS_LICENSE }}
