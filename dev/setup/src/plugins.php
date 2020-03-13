@@ -88,9 +88,6 @@ function plugin_versions( callable $args ) {
 	$required_premium_plugins = array_intersect( $plugins, premium_plugins() );
 	$org_plugins_versions     = org_plugins_versions( $required_org_plugins, $number_versions );
 	$premium_plugins_versions = premium_plugin_versions( $required_premium_plugins, $number_versions );
-	if ( $args( 'branch' ) ) {
-
-	}
 
 	return $org_plugins_versions + $premium_plugins_versions;
 }
