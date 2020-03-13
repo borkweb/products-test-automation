@@ -39,7 +39,7 @@ jobs:
           path: dev/test/_plugin_store
           key: ${{ env.TODAY_DATE }}-${{ env.NIGHTLY_BUILD_HASH }}-${{ hashFiles('.github/workflows/activation-test-plugins') }}-${{ env.PLUGINS_NUMBER_VERSIONS }}-plugin-store
 
-      - name: Pull the plugins release versions
+      - name: Pull the plugins, including nightly builds
         run: |
           test -d dev/test/_plugin_store || php dev/setup/download-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)";
           test -d dev/test/_plugin_store || php dev/setup/download-plugin-nightly-zips.php '${{ matrix.branch }}';
