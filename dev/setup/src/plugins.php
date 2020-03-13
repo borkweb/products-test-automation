@@ -406,6 +406,7 @@ function random_plugins( $dir ) {
  */
 function plugin_wordpress_name( $plugin_slug ) {
 	$map = [
+		// Release zips.
 		'the-events-calendar'      => 'the-events-calendar',
 		'event-tickets'            => 'event-tickets',
 		'advanced-post-manager'    => 'advanced-post-manager',
@@ -420,6 +421,12 @@ function plugin_wordpress_name( $plugin_slug ) {
 		'tribe-ical-importer'      => 'the-events-calendar-ical-importer',
 		'image-widget'             => 'image-widget',
 		'image-widget-plus'        => 'image-widget-plus',
+		// Nightly builds.
+		'events-eventbrite'        => 'the-events-calendar-eventbrite-tickets',
+		'events-pro'               => 'events-calendar-pro',
+		'events-facebook'          => 'the-events-calendar-facebook-importer',
+		'events-filterbar'         => 'the-events-calendar-filterbar',
+		'events-ical-importer'     => 'the-events-calendar-ical-importer',
 	];
 
 	return isset( $map[ $plugin_slug ] ) ? $map[ $plugin_slug ] : $plugin_slug;

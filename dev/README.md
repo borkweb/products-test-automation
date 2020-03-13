@@ -33,10 +33,12 @@ cp env-licenses-exmaple .env.licenses
 
 Fill each license field with a valid license taken from your theeventscalendar.com account.
 
-If you did not do it already, download the last versions of all plugins. From the repository root directory run:
+If you did not do it already, download the last versions of all plugins and the nightly builds.  
+From the repository root directory run:
 
 ```bash
-php dev/setup/dl-plugin-zips.php 5 "$(<.github/workflows/activation-test-plugins)" .env.licenses
+php dev/setup/download-plugin-zips.php 5 "$(<.github/workflows/activation-test-plugins)" .env.licenses
+php dev/setup/download-plugin-nightly-zips.php 'release/B20.03' .env.licenses
 ```
 
 The script will download the last 5 versions of each plugin in the `dev/test/_plugin_store` directory and will use the `.env.licenses` file to authorize the download of the premium plugins.
