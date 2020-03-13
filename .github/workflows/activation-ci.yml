@@ -13,10 +13,7 @@ jobs:
       EPOCHS: 10
       WP_NUMBER_VERSIONS: 3
       PLUGINS_NUMBER_VERSIONS: 3
-    strategy:
-      matrix:
-        branch: [ 'release/B20.03' ]
-    name: Test random activation for ${{ matrix.branch }}
+    name: Test random activation/deactivation
     runs-on: ubuntu-18.04
 
     steps:
@@ -32,7 +29,7 @@ jobs:
       - name: Set the nightly build hash
         env:
           NIGHTLY_SECRET: ${{ secrets.NIGHTLY_SECRET }}
-        run: echo "::set-env name=NIGHTLY_BUILD_HASH::$(.github/workflows/nightly_build_hash.sh '${{ matrix.branch }}')"
+        run: echo "::set-env name=NIGHTLY_BUILD_HASH::$(.github/workflows/nightly_build_hash.sh 'release/*')"
 
       - name: Restore plugin store from cache
         uses: gerbal/always-cache@v1.0.3
@@ -45,7 +42,7 @@ jobs:
           test -d dev/test/_plugin_store || \
             ( \
               php dev/setup/download-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)"; \
-              php dev/setup/download-plugin-nightly-zips.php '${{ matrix.branch }}' \
+              php dev/setup/download-plugin-nightly-zips.php 'release/*' \
           );
         env:
           EVENTS_CALENDAR_PRO_LICENSE: ${{ secrets.EVENTS_CALENDAR_PRO_LICENSE }}
