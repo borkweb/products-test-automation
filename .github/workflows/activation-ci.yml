@@ -41,8 +41,11 @@ jobs:
 
       - name: Pull the plugins, including nightly builds
         run: |
-          test -d dev/test/_plugin_store || php dev/setup/download-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)";
-          test -d dev/test/_plugin_store || php dev/setup/download-plugin-nightly-zips.php '${{ matrix.branch }}';
+          test -d dev/test/_plugin_store || \
+            ( \
+              php dev/setup/download-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)"; \
+              php dev/setup/download-plugin-nightly-zips.php '${{ matrix.branch }}' \
+          );
         env:
           EVENTS_CALENDAR_PRO_LICENSE: ${{ secrets.EVENTS_CALENDAR_PRO_LICENSE }}
           EVENT_TICKETS_PLUS_LICENSE: ${{ secrets.EVENT_TICKETS_PLUS_LICENSE }}
