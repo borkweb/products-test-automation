@@ -33,11 +33,11 @@ jobs:
           NIGHTLY_SECRET: ${{ secrets.NIGHTLY_SECRET }}
         run: echo "::set-env name=NIGHTLY_BUILD_HASH::$(.github/workflows/nightly_build_hash.sh '${{ matrix.branch }}')"
 
-      - name: Restore plugin store from cache
-        uses: gerbal/always-cache@v1.0.3
-        with:
-          path: dev/test/_plugin_store
-          key: ${{ env.TODAY_DATE }}-${{ env.NIGHTLY_BUILD_HASH }}-${{ hashFiles('.github/workflows/activation-test-plugins') }}-${{ env.PLUGINS_NUMBER_VERSIONS }}-plugin-store
+#      - name: Restore plugin store from cache
+#        uses: gerbal/always-cache@v1.0.3
+#        with:
+#          path: dev/test/_plugin_store
+#          key: ${{ env.TODAY_DATE }}-${{ env.NIGHTLY_BUILD_HASH }}-${{ hashFiles('.github/workflows/activation-test-plugins') }}-${{ env.PLUGINS_NUMBER_VERSIONS }}-plugin-store
 
       - name: Pull the plugins, including nightly builds
         run: |
