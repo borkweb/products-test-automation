@@ -317,7 +317,7 @@ function download_plugin_versions( array $plugin_versions ) {
 	foreach ( $plugin_versions as $plugin => $versions ) {
 		foreach ( $versions as $version => $archive_url ) {
 			$dest = plugin_store() . '/' . $plugin . '-' . $version . '.zip';
-			echo "\nDownloading ${plugin} v{$version} to {$dest}...\n";
+			echo "\nDownloading ${plugin} version {$version} to {$dest}...\n";
 			exec( "curl \"{$archive_url}\" > \"{$dest}\"", $output, $status );
 
 			if ( 0 !== (int) $status ) {
