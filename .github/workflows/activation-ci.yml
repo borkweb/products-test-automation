@@ -29,6 +29,8 @@ jobs:
         run: echo "::set-env name=TODAY_DATE::$(.github/workflows/today_date.sh)"
 
       - name: Set the nightly build hash
+        env:
+          NIGHTLY_SECRET: ${{ secrets.NIGHTLY_SECRET }}
         run: echo "::set-env name=NIGHTLY_BUILD_HASH::$(.github/workflows/nightly_build_hash.sh '${{ matrix.branch }}')"
 
       - name: Restore plugin store from cache
@@ -38,9 +40,6 @@ jobs:
           key: ${{ env.TODAY_DATE }}-${{ env.NIGHTLY_BUILD_HASH }}-${{ hashFiles('.github/workflows/activation-test-plugins') }}-${{ env.PLUGINS_NUMBER_VERSIONS }}-plugin-store
 
       - name: Pull the plugins
-        run: |
-          test -d dev/test/_plugin_store || php dev/setup/download-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)"
-          test -d dev/test/_plugin_store || php dev/setup/download-plugin-nightly-zips.php '${{ matrix.branch }}'
         env:
           EVENTS_CALENDAR_PRO_LICENSE: ${{ secrets.EVENTS_CALENDAR_PRO_LICENSE }}
           EVENT_TICKETS_PLUS_LICENSE: ${{ secrets.EVENT_TICKETS_PLUS_LICENSE }}
@@ -52,6 +51,10 @@ jobs:
           IMAGE_WIDGET_PLUS_LICENSE: ${{ secrets.IMAGE_WIDGET_PLUS_LICENSE }}
           PUE_URL: ${{ secrets.PUE_URL }}
           PUE_SIGNED_SECRET: ${{ secrets.PUE_SIGNED_SECRET }}
+          NIGHTLY_SECRET: ${{ secrets.NIGHTLY_SECRET }}
+        run: |
+          test -d dev/test/_plugin_store || php dev/setup/download-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)";
+          test -d dev/test/_plugin_store || php dev/setup/download-plugin-nightly-zips.php '${{ matrix.branch }}';
 
       - name: Randomly activate plugins
         run: php dev/randomly-activate-plugins.php ${{ env.EPOCHS }} ${{ env.WP_NUMBER_VERSIONS }}
