@@ -29,7 +29,7 @@ jobs:
         run: echo "::set-env name=TODAY_DATE::$(.github/workflows/today_date.sh)"
 
       - name: Set the nightly build hash
-        run: echo "::set-env name=NIGHTLY_BUILD_HASH::$(.github/workflows/nightly_build_hash.sh ${{ matrix.branch }})"
+        run: echo "::set-env name=NIGHTLY_BUILD_HASH::$(.github/workflows/nightly_build_hash.sh '${{ matrix.branch }}')"
 
       - name: Restore plugin store from cache
         uses: gerbal/always-cache@v1.0.3
@@ -40,7 +40,7 @@ jobs:
       - name: Pull the plugins
         run: |
           test -d dev/test/_plugin_store || php dev/setup/download-plugin-zips.php ${{ env.PLUGINS_NUMBER_VERSIONS }} "$(<.github/workflows/activation-test-plugins)"
-          test -d dev/test/_plugin_store || php dev/setup/download-plugin-nightly-zips.php ${{ matrix.branch }}
+          test -d dev/test/_plugin_store || php dev/setup/download-plugin-nightly-zips.php '${{ matrix.branch }}'
         env:
           EVENTS_CALENDAR_PRO_LICENSE: ${{ secrets.EVENTS_CALENDAR_PRO_LICENSE }}
           EVENT_TICKETS_PLUS_LICENSE: ${{ secrets.EVENT_TICKETS_PLUS_LICENSE }}

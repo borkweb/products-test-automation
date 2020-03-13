@@ -59,15 +59,22 @@ function nightly_build_timestamp( $branch, $licenses_file = null ) {
  * @return array The decoded response.
  */
 function nightly_builds( $branch, $licenses_file = null ) {
+	$key      = nightly_secret( $licenses_file );
+
+	if ( empty( $key ) ) {
+		echo "\nNightly secret not found or not defined; is the NIGHTLY_SECRET env var set?";
+		exit( 1 );
+	}
+
 	$response = curl_get( nightly_api_url(), [
 		'branch' => $branch,
-		'key'    => nightly_secret( $licenses_file ),
+		'key'    => $key,
 	] );
 
 	$decoded = json_decode( $response, true );
 
 	if ( false === $decoded ) {
-		echo( 'Could not decode nightly builds JSON response: ' . $response );
+		echo( "\nCould not decode nightly builds JSON response: " . $response );
 		exit( 1 );
 	}
 
