@@ -318,7 +318,8 @@ function download_plugin_versions( array $plugin_versions ) {
 		foreach ( $versions as $version => $archive_url ) {
 			$dest = plugin_store() . '/' . $plugin . '-' . $version . '.zip';
 			echo "\nDownloading ${plugin} version {$version} to {$dest}...\n";
-			exec( "curl \"{$archive_url}\" > \"{$dest}\"", $output, $status );
+			$command = "curl -L \"{$archive_url}\" > \"{$dest}\"";
+			exec( $command, $output, $status );
 
 			if ( 0 !== (int) $status ) {
 				echo "\nFailed download: {$archive_url}; \n" . implode( "\n", $output );
