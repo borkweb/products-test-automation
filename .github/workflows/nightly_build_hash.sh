@@ -24,4 +24,4 @@ $args = args( [
 	'licenses_file'
 ] );
 
-exit( nightly_build_timestamp( $args( 'branch' ), $args( 'licenses_file' ) ) );
+die( nightly_build_timestamp( $args( 'branch' ), $args( 'licenses_file' ) ) );
