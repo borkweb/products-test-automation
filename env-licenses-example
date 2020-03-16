@@ -1,0 +1,31 @@
+# This is an example file.
+# Create a copy of this file called .env.licenses, fill in this file with your licenses details.
+# file specifying this file as 3rd argument.
+
+# Premium Plugins Licenses
+EVENTS_CALENDAR_PRO_LICENSE=########################################
+EVENT_TICKETS_PLUS_LICENSE=########################################
+EDD_TICKETS_LICENSE=########################################
+EVENTS_ELASTICSEARCH_LICENSE=########################################
+EVENT_AGGREGATOR_LICENSE=########################################
+COMMUNITY_EVENTS_LICENSE=########################################
+COMMUNITY_TICKETS_LICENSE=########################################
+EVENTBRITE_TICKETS_LICENSE=########################################
+FILTERBAR_LICENSE=########################################
+IMAGE_WIDGET_PLUS_LICENSE=########################################
+EVENTS_FACEBOOK_IMPORTER_LICENSE=########################################
+ICAL_IMPORTER_LICENSE=########################################
+SHOPPTICKETS_LICENSE=########################################
+WOOTICKETS_LICENSE=########################################
+WPECTICKETS_LICENSE=########################################
+
+# SaaS Licenses
+EVENT_AGGREGATOR_LICENSE=########################################
+PROMOTER_LICENSE=########################################
+
+# PUE
+PUE_URL=http://pue.tri.be/api/plugins/v2/
+PUE_SIGNED_SECRET=################################################################
+
+# Nightly builds, ask in Slack for this
+NIGHTLY_SECRET=################################################################
