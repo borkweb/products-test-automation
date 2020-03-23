@@ -53,7 +53,7 @@ function randomly_activate_plugins( $epochs ) {
 		foreach ( $plugins as $plugin ) {
 			$activated[ $plugin['slug'] ] = $plugin['version'];
 			$plugin_slug                  = plugin_wordpress_name( $plugin['slug'] );
-			$activate                     = $cli( [ 'plugin', 'activate', $plugin_slug, '--debug' ] );
+			$activate                     = $cli( [ 'plugin', 'activate', $plugin_slug ] );
 			check_status_or_exit( $activate, $debug . json_encode( $activated, JSON_PRETTY_PRINT ) );
 		}
 	}
