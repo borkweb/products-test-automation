@@ -35,12 +35,27 @@ function os() {
 function docker_compose( array $options = [] ) {
 	setup_id();
 
-	if ( 'Linux' === os() ) {
+	$is_ci = is_ci();
+
+	$host_ip = false;
+	if ( ! $is_ci && 'Linux' === os() ) {
 		$options = array_merge( [ '-f', 'dev/test/activation-stack-linux-override.yml' ], $options );
+		// If we're running on Linux, then try to fetch the host machine IP using a command.
+		$host_ip = host_ip( 'Linux' );
 	}
 
-	return static function ( array $command = [] ) use ( $options ) {
+	return static function ( array $command = [] ) use ( $options, $host_ip, $is_ci ) {
 		$command = 'docker-compose ' . implode( ' ', $options ) . ' ' . implode( ' ', $command );
+
+		if ( ! empty( $host_ip ) ) {
+			// Set the host IP address on Linux machines.
+			$command = 'XDH=' . host_ip() . ' ' . $command;
+		}
+
+		if ( ! empty( $is_ci ) ) {
+			// Disable XDebug in CI context to speed up the builds.
+			$command = 'XDE=0 ' . $command;
+		}
 
 		echo "\nExecuting command: {$command}\n";
 
@@ -77,5 +92,7 @@ function wordpress_container_root_dir( $path = '/' ) {
  * @return Closure The wp-cli pre-process, ready to accept an array of commands to run, the `wp` command is not required.
  */
 function cli() {
-	return docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', 'cli', '--allow-root' ] );
+	$service = is_ci() ? 'cli' : 'cli_debug';
+
+	return docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', $service, '--allow-root' ] );
 }

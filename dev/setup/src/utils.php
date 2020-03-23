@@ -243,3 +243,52 @@ function the_fatality() {
                    """---...______...---"""	
 	';
 }
+
+/**
+ * Returns the host machine IP address as reachable from the containers.
+ *
+ * The way the host machine IP address is fetched will vary depending on the Operating System the function runs on.
+ *
+ * @param string $os The operating system to get the host machine IP address for.
+ *
+ * @return string The host machine IP address or host name (e.g. `host.docker.internal` on macOS or Windows), or
+ *                an empty string to indicate the host machine IP address could not be obtained.
+ */
+function host_ip( $os = 'Linux' ) {
+	switch ( $os ) {
+		case 'Linux':
+			$command = "$(ip route | grep docker0 | awk '{print $9}')";
+			exec( $command, $host_ip_output, $host_ip_status );
+			if ( 0 !== (int) $host_ip_status ) {
+				echo "\033[31mCannot get the host machine IP address using '${command}'" .
+				     $host_ip = false;
+			}
+			$host_ip = $host_ip_output[0];
+			break;
+		default:
+			$host_ip = 'host.docker.internal';
+	}
+
+	return $host_ip;
+}
+
+/**
+ * Returns whether the current running context is a Continuous Integration one or not.
+ *
+ * @return bool Whether the current running context is a Continuous Integration one or not.
+ */
+function is_ci() {
+	$env_vars = [
+		'CI',
+		'TRAVIS_CI',
+		'CONTINUOUS_INTEGRATION',
+		'GITHUB_ACTION',
+	];
+	foreach ( $env_vars as $key ) {
+		if ( (bool) getenv( $key ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
