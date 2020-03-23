@@ -40,7 +40,11 @@ services:
     # The WordPress version embedded in the container is not relevant.
     # Docker image tags/version are not consistent or in sync w/ the WordPress ones and it's faster to re-install
     # WordPress using wp-cli than pull yet another image.
-    image: wordpress:latest
+    build:
+      context: _containers/wordpress_debug
+      args:
+        WORDPRESS_BASE_CONTAINER: wordpress:latest
+        WORDPRESS_CONTAINER_USER: root
     networks:
       - test
     depends_on:
@@ -54,6 +58,14 @@ services:
       # Pull plugins from the plugin store to allow debugging on unzipped file.
       WORDPRESS_CONFIG_EXTRA: |
         define( 'WP_PLUGIN_DIR', '/var/www/html/_plugin_store' );
+      # Configure this to debug the tests with XDebug.
+      # Map the `dev/test/plugin_store` directory to `/var/www/html/_plugin_store` directory in your IDE of choice.
+      PHP_IDE_CONFIG: "serverName=${XDK:-tribe_products_automation}"
+      # The `remote_host` is set to `host.docker.internal` that will resolve to the host machine IP address, from
+      # within the container, on macOS and Windows.
+      # On Linux set the host machine IP address before calling the stack:
+      # XDH=$(ip route | grep docker0 | awk '{print $9}') docker-compose ...
+      XDEBUG_CONFIG: "idekey=${XDK:-tribe_products_automation} remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
     volumes:
       - wordpress:/var/www/html
       # Paths are relative to the directory that contains this file, NOT the current working directory.
@@ -66,6 +78,31 @@ services:
     user: "33:33"
     networks:
       - test
+    volumes:
+      - wordpress:/var/www/html
+      # Paths are relative to the directory that contains this file, NOT the current working directory.
+      - ./_plugin_store:/var/www/html/_plugin_store
+
+  cli_debug:
+    build:
+      context: _containers/wordpress_debug
+      args:
+        WORDPRESS_BASE_CONTAINER: wordpress:cli
+        WORDPRESS_CONTAINER_USER: www-data
+    # UID 33 and GID 33 map to the `xfs` user, which is the one that can actually manipulate files.
+    # See: https://github.com/docker-library/wordpress/issues/256
+    user: "33:33"
+    networks:
+      - test
+    environment:
+      # Configure this to debug the tests with XDebug.
+      # Map the `dev/test/plugin_store` directory to `/var/www/html/_plugin_store` directory in your IDE of choice.
+      PHP_IDE_CONFIG: "serverName=${XDK:-tribe_products_automation}"
+      # The `remote_host` is set to `host.docker.internal` that will resolve to the host machine IP address, from
+      # within the container, on macOS and Windows.
+      # On Linux set the host machine IP address before calling the stack:
+      # XDH=$(ip route | grep docker0 | awk '{print $9}') docker-compose ...
+      XDEBUG_CONFIG: "idekey=${XDK:-tribe_products_automation} remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
     volumes:
       - wordpress:/var/www/html
       # Paths are relative to the directory that contains this file, NOT the current working directory.

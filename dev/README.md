@@ -61,8 +61,10 @@ Run `sh dev/php-shell.sh` to start it; any command shown below is actually a com
 The following command will spin up the `wordpress_debug` container, install a clean version of WordPress in it, and prepare it for the tests:
 
 ```php
-prepare_wordpress('5.3.2','wordpress_debug');
+prepare_wordpress('5.3.2');
 ```
+
+> Note that using the `wordpress_debug` container will allow you to debug the activation and deactivation code with XDebug. Read more in the ["Using XDebug to debug activation and deactivation isues" section](#using-xdebug-to-debug-activation-and-deactivation-issues) section.
 
 Next, let's install the specific version of each plugin using the PHP interactive shell:
 
@@ -107,3 +109,15 @@ When the issue pops up, update the code and test the fix again.
 When you find the fix for an issue open a PR on the repository where the issue lives and reference the line, in the build, where the issue shows up.  
 
 The link should look something like this: `https://github.com/moderntribe/products-test-automation/runs/500225977#step:7:1232`.
+
+### Using XDebug to debug activation and deactivation issues
+
+If you use, in your debug process, the `wordrpess_debug` container, then you will be able to use XDebug to debug the plugins code during activation and deactivation.  
+
+The wrapping functions are already setting up the environment to support this and you will only need to configure your IDE.  
+
+![PHPStorm IDE configuration](docs/images/activation-deactivation-debug-phpstorm-config.png)
+
+By default the `wordpress_debug` and the `cli` containers will call XDebug on port `9001` and setting up path mappings should be all you need to be up and running.
+
+> Note that you will only be able to debug the plugins code, those in the `dev/test/_plugin_store` directory, as WordPress code is not shared with the host machine.
