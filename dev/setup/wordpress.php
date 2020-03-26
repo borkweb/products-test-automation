@@ -3,6 +3,8 @@
  * WordPress related functions.
  */
 
+namespace Tribe\Test;
+
 require_once __DIR__ . '/src/utils.php';
 
 /**
@@ -62,9 +64,10 @@ function wordpress_fetch_versions() {
  * @param string|null The version of WordPress to install, e.g. `5.3.2` or `nightly`.
  */
 function prepare_wordpress( $wordpress_version  = 'nightly' ) {
-	$docker_compose = docker_compose( [ '-f', 'dev/test/activation-stack.yml' ] );
-	$cli            = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'cli', '--allow-root' ] );
-	$waiter         = docker_compose( [ '-f', 'dev/test/activation-stack.yml', 'run', '--rm', 'waiter' ] );
+	$stack          = stack();
+	$docker_compose = docker_compose( [ '-f', $stack ] );
+	$cli            = docker_compose( [ '-f', $stack, 'run', '--rm', 'cli', '--allow-root' ] );
+	$waiter         = docker_compose( [ '-f', $stack, 'run', '--rm', 'waiter' ] );
 	$service        = is_ci() ? 'wordpress' : 'wordpress_debug';
 
 	// Start the WordPress container.
@@ -76,14 +79,15 @@ function prepare_wordpress( $wordpress_version  = 'nightly' ) {
 	sleep( 3 );
 
 	// Install WordPress when it's up and running.
+	$url = wordpress_url();
 	check_status_or_exit( $cli( [
 		'core',
 		'install',
-		'--url=http://tribe.localhost',
+		'--url=' . escapeshellarg( $url ),
 		'--title="Activation Tests"',
 		'--admin_user=admin',
 		'--admin_password=admin',
-		'--admin_email=admin@tribe.localhost',
+		'--admin_email=admin@tribe.test',
 		'--skip-email',
 	] ) );
 
@@ -94,4 +98,11 @@ function prepare_wordpress( $wordpress_version  = 'nightly' ) {
 		'--version=' . $wordpress_version,
 		'--force',
 	] ) );
+
+	if ( ! is_ci() ) {
+		// Set the site URL explicitly in the configuration file to avoid URL mangling.
+		check_status_or_exit( $cli( [ 'config', 'set', 'WP_SITEURL', escapeshellarg( $url ) ] ) );
+		check_status_or_exit( $cli( [ 'config', 'set', 'WP_HOME', escapeshellarg( $url ) ] ) );
+		echo "\033[32mWordPress installation available at ${url}\033[0m";
+	}
 }

@@ -3,6 +3,8 @@
  * Provides functions to run automated tests.
  */
 
+namespace Tribe\Test;
+
 require_once __DIR__ . '/../setup/src/utils.php';
 require_once __DIR__ . '/../setup/src/plugins.php';
 

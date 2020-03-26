@@ -3,21 +3,43 @@
  * Utility functions for the build PHP scripts.
  */
 
+namespace Tribe\Test;
+
 require_once __DIR__ . '/pue.php';
+require_once __DIR__ . '/process.php';
 
 /**
  * Curried argument fetcher to avoid global spamming.
  *
- * @param array<string> $map The list of arguments to fetch from `$argv`.
+ * @param array<string>     $map    The list of arguments to fetch from `$argv`.
+ * @param array<mixed>|null $source The arguments source array, if not specified, then the global `$argv` array will
+ *                                  be used.
+ * @param int               $offset Start reading arguments from this position, usually `1` for the main args and `0`
+ *                                  when reading an array of sub-arguments.
  *
- * @return Closure The arg fetching closure.
+ * @return \Closure The arg fetching closure.
  */
-function args( array $map = [] ) {
-	global $argv;
+function args( array $map = [], array $source = null, $offset = 1 ) {
+	if ( null === $source ) {
+		// If the source is not specified, then read the arguments from the global CLI arguments array.
+		global $argv;
+		$source = $argv;
+	}
 
-	$full_map = [];
+	$full_map        = [];
+	$parsed_variadic = false;
 	foreach ( $map as $position => $key ) {
-		$full_map[ $key ] = isset( $argv[ $position + 1 ] ) ? $argv[ $position + 1 ] : null;
+		if ( $key === '...' && $parsed_variadic ) {
+			throw new \InvalidArgumentException( 'The ... key must be the last in the arguments map!' );
+		}
+
+		if ( '...' === $key ) {
+			$full_map [ $key ] = array_slice( $source, $position + $offset );
+			$parsed_variadic   = true;
+			continue;
+		}
+
+		$full_map[ $key ] = isset( $source[ $position + $offset ] ) ? $source[ $position + $offset ] : null;
 	}
 
 	return static function ( $key, $default = null ) use ( $full_map ) {
@@ -82,8 +104,7 @@ function load_env_file( $env_file ) {
 	$lines = array_filter( explode( "\n", file_get_contents( $env_file ) ) );
 	foreach ( $lines as $env_line ) {
 		if ( ! preg_match( '/^[^=]+=.*$/', $env_line ) ) {
-			echo "\nLine '${env_line}' from env file is malformed.";
-			exit( 1 );
+			continue;
 		}
 		putenv( $env_line );
 	}
@@ -126,7 +147,7 @@ function array_rand_keys( array $array, $num_req = 1 ) {
  * @param mixed|null $message An optional message to print after the output, if the message is not a string, then
  *                            the message data will be encoded and printed using JSON.
  *
- * @return callable The process handling closure.
+ * @return \Closure The process handling closure.
  */
 function check_status_or_exit( callable $process, $message = null ) {
 	if ( 0 !== (int) $process( 'status' ) ) {
@@ -148,7 +169,7 @@ function check_status_or_exit( callable $process, $message = null ) {
  * @param callable $process The process to check.
  * @param int      $timeout The timeout, in seconds.
  *
- * @return callable The process handling closure.
+ * @return \Closure The process handling closure.
  */
 function check_status_or_wait( callable $process, $timeout = 10 ) {
 	$end = time() + (int) $timeout;
@@ -180,14 +201,55 @@ function relative_path( $root, $file ) {
 }
 
 /**
- * Sets up the user id and group in the environment.
+ * Returns the user UID reading it from the environment, or from the output of a command if not set.
+ *
+ * @return string The current user ID.
  */
-function setup_id() {
+function uid() {
 	$uid = getenv( 'UID' );
-	putenv( 'UID=' . $uid );
 
+	if ( false === $uid && in_array( os(), [ 'Linux', 'macOS' ] ) ) {
+		$uid = check_status_or_exit( process( 'id -u' ) )( 'string_output' );
+	}
+
+	return false !== $uid ? $uid : 0;
+}
+
+/**
+ * Returns the user GID reading it from the environment, or from the output of a command if not set.
+ *
+ * @return string The current user group ID.
+ */
+function gid() {
 	$gid = getenv( 'GID' );
-	putenv( 'GID=' . $gid );
+
+	if ( false === $gid && in_array( os(), [ 'Linux', 'macOS' ] ) ) {
+		$gid = check_status_or_exit( process( 'id -g' ) )( 'string_output' );
+	}
+
+	if ( false === $gid ) {
+		$gid = 0;
+		putenv( 'GID=0' );
+	}
+
+	return false !== $gid ? $gid : 0;
+}
+
+/**
+ * Sets up the user id and group in the environment.
+ *
+ * @param bool $reset Whether to refetch and reset the user id and group or not.
+ */
+function setup_id( $reset = false ) {
+	if (
+		false === $reset
+		&& false !== getenv( 'DOCKER_RUN_UID' )
+		&& false !== getenv( 'DOCKER_RUN_GID' )
+	) {
+		return;
+	}
+	putenv( 'DOCKER_RUN_UID=' . uid() );
+	putenv( 'DOCKER_RUN_GID=' . gid() );
 }
 
 /**
@@ -291,4 +353,48 @@ function is_ci() {
 	}
 
 	return false;
+}
+
+// Whether the current run context is a `tric` binary one or not.
+function is_tric() {
+	$env_vars = [
+		'TRIBE_TRIC',
+		'TRIC',
+	];
+	foreach ( $env_vars as $key ) {
+		if ( (bool) getenv( $key ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Returns the current run context.
+ *
+ * @return string The current run context, one of `ci`, `tric` or `default`.
+ */
+function run_context() {
+	if ( is_ci() ) {
+		return 'ci';
+	}
+	if ( is_tric() ) {
+		return 'tric';
+	}
+
+	return 'default';
+}
+
+/**
+ * Returns the path to the `dev` directory or to a sub-path in it.
+ *
+ * @param string $path The path to append to the absolute path of the `dev` directory.
+ *
+ * @return string The absolute path to the `dev` directory or a to a sub-directory of it.
+ */
+function dev( $path = '' ) {
+	$dev = dirname( dirname( __DIR__ ) );
+
+	return empty( $path ) ? $dev : $dev . DIRECTORY_SEPARATOR . ltrim( $path, '\\/' );
 }

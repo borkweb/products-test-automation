@@ -1,0 +1,209 @@
+#!/usr/bin/env php
+<?php
+// Requires the function files we might need.
+require_once __DIR__ . '/setup/src/utils.php';
+require_once __DIR__ . '/setup/src/pue.php';
+require_once __DIR__ . '/setup/src/plugins.php';
+require_once __DIR__ . '/setup/src/nightly.php';
+require_once __DIR__ . '/setup/src/tric.php';
+require_once __DIR__ . '/setup/docker.php';
+require_once __DIR__ . '/setup/wordpress.php';
+require_once __DIR__ . '/setup/shell.php';
+
+
+use function Tribe\Test\args;
+use function Tribe\Test\check_status_or_exit;
+use function Tribe\Test\docker_compose;
+use function Tribe\Test\docker_compose_realtime;
+use function Tribe\Test\ensure_dev_plugin;
+use function Tribe\Test\load_env_file;
+use function Tribe\Test\setup_id;
+use function Tribe\Test\stack;
+use function Tribe\Test\using;
+use function Tribe\Test\write_using;
+
+// Set up the argument parsing function.
+$args = args( [
+	'subcommand',
+	'...',
+] );
+
+$cli_name = basename( $argv[0] );
+const CLI_VERSION = '0.0.1';
+
+$cli_header_template = <<< CLI
+\033[36m%s\033[0m version \033[36m%s\033[0m
+
+\033[36mModern Tribe local testing and development environment tool.\033[0m
+
+
+CLI;
+
+echo sprintf( $cli_header_template, $cli_name, CLI_VERSION );
+
+// Set the current run context.
+putenv( 'TRIBE_TRIC=1' );
+
+load_env_file( __DIR__ . '/.env.tric' );
+if ( file_exists( __DIR__ . '/.env.tric.local' ) ) {
+	load_env_file( __DIR__ . '/.env.tric.local' );
+}
+
+$help_message_template = <<< HELP
+Available commands:
+	\033[36mhelp\033[0m         Displays this help message.
+	\033[36muse\033[0m          Sets the plugin to use in the tests.
+	\033[36mrun\033[0m          Runs a Codeception test in the stack, the equivalent of \e[36m'codecept run ...'\e[0m.
+	\033[36mcc\033[0m           Runs a Codeception command in the stack, the equivalent of \e[36m'codecept ...'\e[0m.
+	\033[36mcli\033[0m          Runs a wp-cli command in the stack.
+	\033[36mserve\033[0m        Starts the stack and serves it on http://localhost
+	\033[36mcomposer\033[0m     Runs a Composer command in the stack.
+	\033[36mlogs\033[0m         Displays the current stack logs.
+	\033[36mdown\033[0m         Tears down the stack, stopping containers and removing volumes.
+	\033[36mconfig\033[0m       Prints the stack configuration as interpolated from the environment.
+HELP;
+
+$help_message = sprintf( $help_message_template );
+
+$is_help = args( [ 'help' ], $args( '...' ), 0 )( 'help', false ) === 'help';
+
+switch ( $args( 'subcommand', 'help' ) ) {
+	default:
+	case 'help':
+		echo $help_message;
+		// Show the help text.
+		break;
+	case 'run':
+		if ( $is_help ) {
+			echo "Runs a Codeception test in the stack, the equivalent of \033[36m'codecept run ...'\033[0m.\n";
+			echo "This command requires a use target set using the \033[36muse\033[0m command.\n";
+			echo "usage: \033[36m${argv[0]} run [...<commands>]\033[0m\n";
+			echo "example: \033[36m${argv[0]} run wpunit\033[0m";
+			break;
+		}
+		$using = using( __DIR__ );
+
+		echo "\033[32mUsing {$using}.\033[0m\n";
+
+		setup_id();
+		// Run the command in the Codeception container, exit the same status as the process.
+		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+		$status        = $tric_realtime( array_merge( [ 'run', '--rm', 'codeception','run' ], $args( '...' ) ) );
+		exit( 0 );
+		break;
+	case 'cc':
+		if ( $is_help ) {
+			echo "Runs a Codeception command in the stack, the equivalent of \033[36m'codecept ...'\033[0m.\n";
+			echo "This command requires a use target set using the \033[36muse\033[0m command.\n";
+			echo "usage: \033[36m${argv[0]} cc [...<commands>]\033[0m\n";
+			echo "example: \033[36m${argv[0]} cc generate:wpunit wpunit Foo\033[0m";
+			break;
+		}
+		$using = using( __DIR__ );
+
+		echo "\033[32mUsing {$using}.\033[0m\n";
+
+		setup_id();
+		// Run the command in the Codeception container, exit the same status as the process.
+		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+		$status        = $tric_realtime( array_merge( [ 'run', '--rm', 'codeception' ], $args( '...' ) ) );
+		exit( 0 );
+		break;
+	case 'cli':
+		if ( $is_help ) {
+			echo "\033[36mcli\033[0m          Runs a wp-cli command in the stack.\n";
+			echo "signature: \033[36m${argv[0]} cli [...<commands>]\033[0m\n";
+			echo "example: \033[36m${argv[0]} cli plugin list --status=active\033[0m";
+			break;
+		}
+		setup_id();
+		// Runs a wp-cli command in the stack, using the `cli` service.
+		$composer_command = $args( '...' );
+		$tric_realtime    = docker_compose_realtime( [ '-f', stack() ] );
+		$tric_realtime( array_merge( [ 'run', '--rm', 'cli', 'wp' ], $composer_command ) );
+		break;
+	case 'serve':
+		if ( $is_help ) {
+			echo "Starts the stack and serves it on http://localhost\n";
+			echo "usage: \033[36m${argv[0]} serve [<port>]\033[0m\n";
+			echo "example: \033[36m${argv[0]} serve 8923\033[0m";
+			break;
+		}
+		setup_id();
+		$sub_args = args( [ 'port' ], $args( '...' ), 0 );
+		$port     = $sub_args( 'port', '8888' );
+		putenv( 'WORDPRESS_HTTP_PORT=' . $port );
+		$tric = docker_compose( [ '-f', stack() ] );
+		check_status_or_exit( $tric( [ 'up', '-d', 'wordpress' ] ) );
+		check_status_or_exit(
+			$tric( [ 'run', '--rm', 'site_waiter' ] ),
+			"\\033[31mWordPress site is not available at http://localhost:" . $port
+			. "; please check the container health.\\033[0m"
+		);
+		echo "\033[32mWordPress site up and running at http://localhost:{$port}\033[0m\n";
+		break;
+	case 'logs':
+		if ( $is_help ) {
+			echo "Displays the stack logs.\n";
+			echo "usage: \033[36m${argv[0]} logs\033[0m";
+			break;
+		}
+		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+		$tric_realtime( [ 'logs', '--follow' ] );
+		break;
+	case 'down':
+		if ( $is_help ) {
+			echo "Tears down the stack, stopping containers and removing volumes.\n";
+			echo "usage: \033[36m${argv[0]} down\033[0m";
+			break;
+		}
+		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+		$tric_realtime( [ 'down' ] );
+		break;
+	case 'use':
+		if ( $is_help ) {
+			echo "Sets the plugin to use in the tests.\n";
+			echo "signature: \033[36m${argv[0]} use <target>\033[0m\n";
+			echo "example: \033[36m${argv[0]} use the-events-calendar\033[0m";
+			break;
+		}
+		setup_id();
+		$sub_args = args( [ 'target' ], $args( '...' ), 0 );
+		$target   = $sub_args( 'target', false );
+		ensure_dev_plugin( $target );
+		write_using( __DIR__, $target );
+
+		echo "\033[32mUsing {$target}\033[0m";
+		break;
+	case 'composer':
+		if ( $is_help ) {
+			echo "Runs a Composer command in the stack.\n";
+			echo "This command requires a use target set using the \033[36muse\033[0m command.\n";
+			echo "usage: \033[36m${argv[0]} composer [...<commands>]\033[0m\n";
+			echo "example: \033[36m${argv[0]} composer install\033[0m";
+			break;
+		}
+		$using = using( __DIR__ );
+
+		echo "\033[32mUsing {$using}.\033[0m\n";
+
+		setup_id();
+		$composer_command = $args( '...' );
+		$tric_realtime    = docker_compose_realtime( [ '-f', stack() ] );
+		$tric_realtime( array_merge( [ 'run', '--rm', 'composer' ], $composer_command ) );
+		break;
+	case 'config':
+		if ( $is_help ) {
+			echo "Prints the stack configuration as interpolated from the environment.\n";
+			echo "usage: \033[36m${argv[0]} config\033[0m";
+			break;
+		}
+		$using = using( __DIR__ );
+		setup_id();
+		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+		$tric_realtime( [ 'config' ] );
+		break;
+}
+
+// Add a break line at the end of each command to avoid dirty terminal issues.
+echo "\n";

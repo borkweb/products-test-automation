@@ -16,3 +16,11 @@ dev/test/_plugin_store
 
 # Local file used to test the script locally.
 .env.licenses
+
+# Ignore the local version of WordPress and the plugins files used in local development and testing.
+dev/_wordpress
+dev/_plugins
+# Any .using file created by the tric cli tool.
+.using
+# Any .env.tric.local file created to override the tric cli tool configuration.
+.env.tric.local

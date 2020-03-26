@@ -6,8 +6,8 @@ services:
 
   wordpress:
     # Let's avoid user auth issues or messy chmod/chowns.
-    user: "${UID}:${GID}"
+    user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
 
   cli:
     # Let's avoid user auth issues or messy chmod/chowns.
-    user: "${UID}:${GID}"
+    user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
