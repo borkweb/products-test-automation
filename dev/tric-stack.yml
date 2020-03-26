@@ -21,9 +21,6 @@ services:
 
   wordpress:
     image: wordpress:latest
-#    image: tric_wordpress:latest
-#    build:
-#      context: test/_containers/tric_wordpress
     networks:
       - tric
     depends_on:
