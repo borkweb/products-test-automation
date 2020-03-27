@@ -18,6 +18,11 @@ docker run hello-world
 
 If this is not the case, please take the time to read Docker and docker-compose documentation and fix the issues you encounter.
 
+## Where to get help
+
+First and foremost the most up-to-date documentation should be the output of the `dev/tric help` command and the `help` sub-commands of each `dev/tric` command.  
+Second, look at the code: this tools is written in PHP, the same language as WordPress and, as such, should be easy to inspect and update.
+
 ## Preparing the plugins
 
 The stack does not come with any plugin you need to work on, so you will have to do some work to set them up one by one, as required by your work.  
@@ -25,21 +30,24 @@ The stack does not come with any plugin you need to work on, so you will have to
 The stack will look for plugins in the `dev/test/plugins` directory, so change directory to that and clone the plugin(s) you need to work on:
 
 ```bash
-cd dev/test/plugins
+cd dev/_plugins
 git clone git@github.com:moderntribe/the-events-calendar.git
 cd the-events-calendar
 git checkout release/B20.03
 git submodule update --recursive --init
 ```
 
-The last part is to build the required Composer and `npm` dependencies, to avoid misaligned dependencies, use the containers provided in the stack to update the dependencies.  
-Change directory back to the `dev` directory first, then run the following command:
+The last part is to build the required Composer and `npm` dependencies.  
+To avoid misaligned Composer dependencies, use the `composer` service provided in the stack to update the PHP dependencies:
 
 ```bash
-tric build the-events-calendar
+tric use the-events-calendar
+tric composer install
 ```
 
 Give the whole process some time to complete and do the same for each plugin you need to work on.
+
+`npm` dependencies are not covered yet.
 
 ## Running tests
 
@@ -82,29 +90,19 @@ dev/tric run tests/integration/SomeTest.php:test_foo_is_not_bar
 
 ## Using the shell
 
-If you want more hands-on control on the stack, or need to access its inner workings, you can open a PHP interactive shell in it with the following command: 
-
+If you want more hands-on control on the stack, or need to access its inner workings, you can open a shell into the `codeception` container with the `shell` command: 
 
 ```bash
 dev/tric shell
 ```
 
-This is a PHP interactive shell that comes pre-loaded with the Docker and docker-compose functions, it has auto-completion and requires you to write using PHP syntax.  
-As an example, running `the-events-calendar` `wpunit` suite from within the interactive shell would look like this:
-
-```shell
-dev/tric shell
-```
-
-Once the interactive shell has started type the following commands:
+The shell will open, by default, in the container `/plugins` directory. The directory is mapped to the `dev/_plugins` directory on the host.
+Once the shell opens you will be able to use any Codeception command available, e.g.:
 
 ```
-tric > using_plugin('the-events-calendar')('run wpunit');
+cd /plugins/the-events-calendar
+vendor/bin/codecept run wpunit
 ```
-
-The command will start, with some debug output, and print the test result on screen, when the command it's done it will return to the interactive shell.
-As our use of `tric` grows more and more functions will be added to the interactive shell, please take some time to explore the code to find out more.  
-Or use auto-completion like a mad man and find out the hard way.
 
 ## Debugging tests with XDebug
 
@@ -117,7 +115,7 @@ If the stack is currently running you will need to tear down the stack first:
 Then activate the stack debug mode:
 
 ```bash
-dev/tric debug on
+dev/tric xdebug on
 ```
 > Note: activating and deactivating the debug mode will tear down, stop and remove, the stack containers and, with them, any modification you've made to the stack. If you have valuable information (you should not) inthe stack, then save it first.
 
@@ -125,8 +123,8 @@ The next time you spin up the stack to run tests or to have the WordPress instal
 
 * Listen for XDebug connections on port 9001
 * Set up path mappings:
-	* `dev/tests/wordpress` -> `/var/www/html`
-	* `dev/test/plugins` -> `/plugins`
+	* `dev/_wordpress` -> `/var/www/html`
+	* `dev/_plugins` -> `/plugins`
 * If your IDE allows it, then set the server name and host to `tric`, this is the IDE configuration key XDebug will use when communicating with your host machine.
 
 Please refer to your IDE of choice to know how to set up these values.
@@ -136,8 +134,10 @@ Please refer to your IDE of choice to know how to set up these values.
 When you are done with debuggin and want to deactivate it, just run this command:
 
 ```bash
-dev/tric debug off
+dev/tric xdebug off
 ```
+
+You can get more information about the available XDebug options using the `dev/tric xdebug help` command.
 
 ## Using the stack as a local development environment
 
@@ -149,7 +149,8 @@ You can start the stack, and have it configured for you, running the following c
 dev/tric serve 8888
 ```
 
-The above command will start the stack, install a fresh copy of WordPress, set it up to look for plugins in the `dev/test/plugins` directory, and be served at `http://localhost:8888`.
+The above command will start the stack, install a fresh copy of WordPress, set it up to look for plugins in the `dev/_plugins` directory, and be served at `http://localhost:8888`.
+The stack will also create and scaffold the WordPress installation ins the `dev/_wordpress` directory if it does not exist already.  
 
 You can stop the stack by running the following command:
 
@@ -176,13 +177,13 @@ tric cli db export /plugins/the-events/calendar/tests/_data/dump.sql
 
 ## How the stack works, an overview 
 
-The stack services are defined by the `dev/tric.yml` file. This is a YAML format docker-compose configuration file the `tric` binary will use to run the `docker-compose` command.  
+The stack services are defined by the `dev/tric-stack.yml` file.  
+This is a YAML format docker-compose configuration file the `tric` binary will use to run the `docker-compose` command.  
 The main services defined there are:
 
 * `wordpress` - this uses the `wordpress:latest` image, the official Docker image for WordPress. When running the container will fill the `dev/test/wordpress` directory with the contents of the WordPress installation that is currently serving the container. Furthermore the WordPress container is configured to look for plugins in the `/plugins` directory, that directory is a shared volume that you can find in the `dev/test/plugins` directory.
 * `db` - this is an image that is providing the database for the installation. For performance and isolation reasons the database is **not** persisted across test runs and any data stored in the database will be lost when the container is stopped and removed.
 * `cli` - this uses the `wordpress:cli` image to provide wp-cli commands for the stack.
-* `adminer` - this provides a Web UI to check and control the stack database.
 * `codeception` - this service contains the Codeception runner and support code, the image is a custom one adapted to WordPress usage.
 * `chrome` - this image provides the Chrome instance that will run the acceptance tests requiring JavaScript support.
 
