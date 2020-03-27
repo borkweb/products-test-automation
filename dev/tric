@@ -47,10 +47,11 @@ $help_message_template = <<< HELP
 Available commands:
 	<light_cyan>help</light_cyan>         Displays this help message.
 	<light_cyan>use</light_cyan>          Sets the plugin to use in the tests.
+	<light_cyan>using</light_cyan>        Returns the current <light_cyan>use</light_cyan> target.
 	<light_cyan>run</light_cyan>          Runs a Codeception test in the stack, the equivalent of <light_cyan>'codecept run ...'</light_cyan>.
 	<light_cyan>cc</light_cyan>           Runs a Codeception command in the stack, the equivalent of <light_cyan>'codecept ...'</light_cyan>.
 	<light_cyan>shell</light_cyan>        Opens a shell in the Codeception container of the stack.
-	<light_cyan>xdebug</light_cyan>       Activates and deactivated XDebug in the stack.
+	<light_cyan>xdebug</light_cyan>       Activates and deactivated XDebug in the stack or returns the current XDebug status.
 	<light_cyan>cli</light_cyan>          Runs a wp-cli command in the stack.
 	<light_cyan>serve</light_cyan>        Starts the stack and serves it on localhost.
 	<light_cyan>composer</light_cyan>     Runs a Composer command in the stack.
@@ -58,7 +59,7 @@ Available commands:
 	<light_cyan>down</light_cyan>         Tears down the stack, stopping containers and removing volumes.
 	<light_cyan>config</light_cyan>       Prints the stack configuration as interpolated from the environment.
 	<light_cyan>reset</light_cyan>        Resets {$cli_name} to the initial state as configured by the env files.
-	<light_cyan>debug</light_cyan>        Activates or deactivates {$cli_name} debug output.
+	<light_cyan>debug</light_cyan>        Activates or deactivates {$cli_name} debug output or returns the current debug status.
 
 HELP;
 
@@ -180,13 +181,14 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		}
 
 		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
-		$tric_realtime( [ 'down' ] );
+		$tric_realtime( [ 'down', '--volumes', '--remove-orphans' ] );
 		break;
 	case 'use':
 		if ( $is_help ) {
 			echo "Sets the plugin to use in the tests.\n";
-			echo colorize( "signature: <light_cyan>${argv[0]} use <target></light_cyan>\n" );
-			echo colorize( "example: <light_cyan>${argv[0]} use the-events-calendar</light_cyan>" );
+			echo colorize( "signature: <light_cyan>${argv[0]} use <target>[/<subdir>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} use the-events-calendar</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} use event-tickets/common</light_cyan>" );
 			break;
 		}
 
@@ -197,6 +199,16 @@ switch ( $args( 'subcommand', 'help' ) ) {
 
 		echo light_cyan( "Using {$target}\n" );
 		break;
+	case 'using':
+		if ( $is_help ) {
+			echo "Returns the current 'use' target.\n";
+			echo colorize( "signature: <light_cyan>${argv[0]} using <target>[/<subdir>]</light_cyan>\n" );
+			break;
+		}
+
+		$using = tric_target();
+		echo light_cyan( "Using {$using}\n" );
+		break;
 	case 'xdebug':
 		if ( $is_help ) {
 			echo "Activates and deactivates the XDebug in the stack.\n";
@@ -206,7 +218,14 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		}
 
 		$toggle = args( [ 'toggle' ], $args( '...' ), 0 )( 'toggle', 'on' );
-		$value  = 'on' === $toggle ? '1' : '0';
+
+		if ( 'status' === $toggle ) {
+			$value = getenv( 'XDE' );
+			echo 'XDebug status is: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
+			break;
+		}
+
+		$value = 'on' === $toggle ? '1' : '0';
 		write_env_file( $run_settings_file, [ 'XDE' => $value ], true );
 		echo 'XDebug status: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
 		break;
@@ -263,14 +282,20 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		break;
 	case 'debug':
 		if ( $is_help ) {
-			echo "Activates or deactivates {$cli_name} debug output.\n";
+			echo "Activates or deactivates {$cli_name} debug output or returns the current debug status.\n";
 			echo colorize( "signature: <light_cyan>${argv[0]} debug (on|off)</light_cyan>\n" );
 			echo colorize( "example: <light_cyan>${argv[0]} debug on</light_cyan>" );
+			echo colorize( "example: <light_cyan>${argv[0]} debug status</light_cyan>" );
 			break;
 		}
 
-		$toggle = args( [ 'toggle' ], $args( '...' ), 0 )( 'toggle', 'on' );
-		$value  = 'on' === $toggle ? '1' : '0';
+		$toggle = args( [ 'toggle' ], $args( '...' ), 0 )( 'toggle', 'status' );
+		if ( 'status' === $toggle ) {
+			$value = getenv( 'XDE' );
+			echo 'Debug status is: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
+			break;
+		}
+		$value = 'on' === $toggle ? '1' : '0';
 		write_env_file( $run_settings_file, [ 'CLI_VERBOSITY' => $value ], true );
 		echo 'Debug status: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
 		break;

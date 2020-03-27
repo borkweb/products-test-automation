@@ -485,9 +485,19 @@ function dev_plugins() {
 	$dev_plugins_dir = new CallbackFilterIterator( new FilesystemIterator( dev( '_plugins' ), $options ),
 		static function ( SplFileInfo $file ) {
 			return $file->isDir();
-		} );
+		}
+	);
+
+	$allowed_subdirs = [ 'common' ];
 	foreach ( iterator_to_array( $dev_plugins_dir ) as $key => $value ) {
-		$dev_plugins[ basename( $key ) ] = $value;
+		$basename                 = basename( $key );
+		$dev_plugins[ $basename ] = $value;
+		foreach ( $allowed_subdirs as $subdir ) {
+			$subdir_path = $value . '/' . $subdir;
+			if ( file_exists( $subdir_path ) ) {
+				$dev_plugins[ $basename . '/' . $subdir ] = $subdir_path;
+			}
+		}
 	}
 
 	return $dev_plugins;
