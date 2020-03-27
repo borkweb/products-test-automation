@@ -212,21 +212,46 @@ switch ( $args( 'subcommand', 'help' ) ) {
 	case 'xdebug':
 		if ( $is_help ) {
 			echo "Activates and deactivates the XDebug in the stack.\n";
-			echo colorize( "signature: <light_cyan>${argv[0]} xdebug (on|off)</light_cyan>\n" );
-			echo colorize( "example: <light_cyan>${argv[0]} xdebug on</light_cyan>" );
+			echo colorize( "signature: <light_cyan>${argv[0]} xdebug (on|off|status|port|host|key) [<value>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} xdebug on</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} xdebug status</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} xdebug host 192.168.1.2</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} xdebug port 9009</light_cyan>" );
 			break;
 		}
 
-		$toggle = args( [ 'toggle' ], $args( '...' ), 0 )( 'toggle', 'on' );
+		$xdebug_args = args( [ 'toggle', 'value' ], $args( '...' ), 0 );
+		$toggle      = $xdebug_args( 'toggle', 'on' );
 
-		if ( 'status' === $toggle ) {
+		$xdebug_status = static function () {
 			$value = getenv( 'XDE' );
 			echo 'XDebug status is: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) ) . PHP_EOL;
 			echo 'Remote host: ' . light_cyan( getenv( 'XDH' ) ) . PHP_EOL;
 			echo 'Remote port: ' . light_cyan( getenv( 'XDP' ) ) . PHP_EOL;
 			echo 'IDE Key: ' . light_cyan( getenv( 'XDK' ) ) . PHP_EOL;
+			echo colorize( PHP_EOL . "You can override these values in the <light_cyan>.env.tric.local" .
+			               "</light_cyan> file or by using the " .
+			               "<light_cyan>'xdebug (host|key|port) <value>'</light_cyan> command." ) . PHP_EOL;
+			echo PHP_EOL . ( 'Ensure the following path mappings are set (host path => container path) in your IDE:' ) . PHP_EOL;
+			echo colorize( "  - <light_cyan>dev/_plugins</light_cyan> => <light_cyan>/plugins</light_cyan>" ) . PHP_EOL;
+			echo colorize( "  - <light_cyan>dev/_wordpress</light_cyan> => <light_cyan>/var/www/html</light_cyan>" );
+		};
 
-			echo colorize( PHP_EOL . 'You can override these values in the <light_cyan>.env.tric.local</light_cyan> file.' );
+		if ( 'status' === $toggle ) {
+			$xdebug_status();
+			break;
+		}
+
+		$map = [
+			'host' => 'XDH',
+			'key'  => 'XDK',
+			'port' => 'XDP',
+		];
+		if ( array_key_exists( $toggle, $map ) ) {
+			$var = $xdebug_args( 'value' );
+			echo colorize( "Setting <light_cyan>{$map[$toggle]}={$var}</light_cyan>" ) . PHP_EOL . PHP_EOL;
+			write_env_file( $run_settings_file, [ $map[ $toggle ] => $var ] );
+			$xdebug_status();
 			break;
 		}
 
