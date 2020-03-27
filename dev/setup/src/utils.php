@@ -7,6 +7,7 @@ namespace Tribe\Test;
 
 require_once __DIR__ . '/pue.php';
 require_once __DIR__ . '/process.php';
+require_once __DIR__ . '/colors.php';
 
 /**
  * Curried argument fetcher to avoid global spamming.
@@ -96,18 +97,36 @@ function parse_license_file( $licenses_file = null ) {
  * @param string $env_file The env file to read the contents of.
  */
 function load_env_file( $env_file ) {
+	$env_lines = read_env_file( $env_file );
+
+	foreach ( $env_lines as $key => $value ) {
+		putenv( "${key}={$value}" );
+	}
+}
+
+/**
+ * Reads the content of an environment file into an array.
+ *
+ * @param string $env_file The environment file to parse.
+ *
+ * @return array<string,string> A map of keys and values parsed from the env file.
+ */
+function read_env_file( $env_file ) {
 	if ( ! file_exists( $env_file ) ) {
 		echo "\nenv file ${env_file} does not exist.";
 		exit( 1 );
 	}
 
-	$lines = array_filter( explode( "\n", file_get_contents( $env_file ) ) );
+	$lines     = array_filter( explode( "\n", file_get_contents( $env_file ) ) );
+	$env_lines = [];
 	foreach ( $lines as $env_line ) {
-		if ( ! preg_match( '/^[^=]+=.*$/', $env_line ) ) {
+		if ( ! preg_match( '/^(?<key>[^=]+)=(?<value>.*)$/', $env_line, $m ) ) {
 			continue;
 		}
-		putenv( $env_line );
+		$env_lines[ $m['key'] ] = $m['value'];
 	}
+
+	return $env_lines;
 }
 
 /**
@@ -138,51 +157,6 @@ function array_rand_keys( array $array, $num_req = 1 ) {
 	$picks = array_rand( $array, $num_req );
 
 	return array_keys( array_intersect( array_flip( $array ), $picks ) );
-}
-
-/**
- * Checks the status of a process, or `exit`s.
- *
- * @param callable   $process The process to check.
- * @param mixed|null $message An optional message to print after the output, if the message is not a string, then
- *                            the message data will be encoded and printed using JSON.
- *
- * @return \Closure The process handling closure.
- */
-function check_status_or_exit( callable $process, $message = null ) {
-	if ( 0 !== (int) $process( 'status' ) ) {
-		echo "\nProcess status is not 0, output: \n\n" . implode( "\n", $process( 'output' ) );
-		if ( null !== $message ) {
-			echo "\nDebug:\n" .
-			     ( is_string( $message ) ? $message : json_encode( $message, JSON_PRETTY_PRINT ) ) .
-			     "\n";
-		}
-		exit ( 1 );
-	}
-
-	return $process;
-}
-
-/**
- * Checks the status of a process on a timeout, or `exit`s.
- *
- * @param callable $process The process to check.
- * @param int      $timeout The timeout, in seconds.
- *
- * @return \Closure The process handling closure.
- */
-function check_status_or_wait( callable $process, $timeout = 10 ) {
-	$end = time() + (int) $timeout;
-	while ( time() <= $end ) {
-		if ( 0 !== (int) $process( 'status' ) ) {
-			echo "\nProcess status is not 0, waiting...";
-			sleep( 2 );
-		} else {
-			return $process;
-		}
-	}
-
-	return check_status_or_exit( $process );
 }
 
 /**
@@ -322,7 +296,7 @@ function host_ip( $os = 'Linux' ) {
 			$command = "$(ip route | grep docker0 | awk '{print $9}')";
 			exec( $command, $host_ip_output, $host_ip_status );
 			if ( 0 !== (int) $host_ip_status ) {
-				echo "\033[31mCannot get the host machine IP address using '${command}'" .
+				echo "<red>Cannot get the host machine IP address using '${command}'" .
 				     $host_ip = false;
 			}
 			$host_ip = $host_ip_output[0];
@@ -397,4 +371,63 @@ function dev( $path = '' ) {
 	$dev = dirname( dirname( __DIR__ ) );
 
 	return empty( $path ) ? $dev : $dev . DIRECTORY_SEPARATOR . ltrim( $path, '\\/' );
+}
+
+/**
+ * Writes a key and values map to an env format file.
+ *
+ * @param string               $file   The path to the env file to write or update.
+ * @param array<string,string> $lines  The map of values to write to the env file.
+ * @param bool                 $update Whether to update the lines in the file with the new ones, or replace them.
+ */
+function write_env_file( $file, array $lines = [], $update = false ) {
+	$existing_lines = [];
+
+	if ( $update && file_exists( $file ) ) {
+		$existing_lines = read_env_file( $file );
+	}
+
+	$new_lines = array_merge( $existing_lines, $lines );
+
+	$data = implode( "\n", array_map( static function ( $key, $value ) {
+		return "{$key}={$value}";
+	}, array_keys( $new_lines ), $new_lines ) );
+
+	$put = file_put_contents( $file, $data );
+
+	if ( false === $put ) {
+		echo "\nCould not write env file {$file}";
+		exit( 1 );
+	}
+}
+
+/**
+ * Parses an env format file to return its values.
+ *
+ * @param string $file The path to the env file to parse.
+ *
+ * @return \Closure A closure that will take the `$key` and `$default` arguments to fetch a value read from the env
+ *                  format file.
+ */
+function env_file( $file ) {
+	$map = read_env_file( $file );
+
+	return static function ( $key, $default ) use ( $map ) {
+
+		return isset( $map[ $key ] ) ? $map[ $key ] : $default;
+	};
+}
+
+/**
+ * Prints a debug message, if CLI_VERBOSITY is not `0`.
+ *
+ * @param string $message The debug message to print.
+ */
+function debug( $message ) {
+	$verbosity = getenv( 'CLI_VERBOSITY' );
+	if ( empty( $verbosity ) ) {
+		return;
+	}
+
+	echo magenta( "[debug] " . $message );
 }

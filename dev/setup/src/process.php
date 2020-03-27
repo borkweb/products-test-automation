@@ -39,9 +39,75 @@ function process( $command ) {
  * @return int The process exit status, `0` means ok.
  */
 function process_realtime( $command ) {
-	debug( "\nExecuting command: {$command}\n" );
+	debug( "Executing command: {$command}" );
+
+	echo PHP_EOL;
 
 	passthru( escapeshellcmd( $command ), $status );
 
 	return (int) $status;
 }
+
+/**
+ * Unsets the PHP max execution time allowing the PHP thread to run without time limit.
+ */
+function remove_time_limit() {
+	set_time_limit( 0 );;
+}
+
+/**
+ * Sets the time limit for the current PHP thread.
+ *
+ * This function acts as a wrapper for the `max_execution_time` setting of PHP.
+ *
+ * @param int $time_limit The time limit to set, setting the value to `0` will remove the execution time limit.
+ */
+function set_time_limit( $time_limit = 0 ) {
+	ini_set( 'max_execution_time', $time_limit );
+}
+
+/**
+ * Checks the status of a process, or `exit`s.
+ *
+ * @param callable   $process The process to check.
+ * @param mixed|null $message An optional message to print after the output, if the message is not a string, then
+ *                            the message data will be encoded and printed using JSON.
+ *
+ * @return \Closure The process handling closure.
+ */
+function check_status_or_exit( callable $process, $message = null ) {
+	if ( 0 !== (int) $process( 'status' ) ) {
+		echo "\nProcess status is not 0, output: \n\n" . implode( "\n", $process( 'output' ) );
+		if ( null !== $message ) {
+			echo "\nDebug:\n" .
+			     ( is_string( $message ) ? $message : json_encode( $message, JSON_PRETTY_PRINT ) ) .
+			     "\n";
+		}
+		exit ( 1 );
+	}
+
+	return $process;
+}
+
+/**
+ * Checks the status of a process on a timeout, or `exit`s.
+ *
+ * @param callable $process The process to check.
+ * @param int      $timeout The timeout, in seconds.
+ *
+ * @return \Closure The process handling closure.
+ */
+function check_status_or_wait( callable $process, $timeout = 10 ) {
+	$end = time() + (int) $timeout;
+	while ( time() <= $end ) {
+		if ( 0 !== (int) $process( 'status' ) ) {
+			echo "\nProcess status is not 0, waiting...";
+			sleep( 2 );
+		} else {
+			return $process;
+		}
+	}
+
+	return check_status_or_exit( $process );
+}
+

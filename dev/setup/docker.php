@@ -106,7 +106,7 @@ function wordpress_url() {
 	preg_match( '/wordpress_debug:.*?ports:.*?(?<port>\\d+):80\\/tcp/us', $config, $m );
 
 	if ( ! isset( $m['port'] ) ) {
-		echo "\n\033[31mCould not read the 'wordpress_debug' service localhost port from the stack " .
+		echo "\n<red>Could not read the 'wordpress_debug' service localhost port from the stack " .
 		     "configuration:\n" . $config;
 		exit( 1 );
 	}
@@ -174,18 +174,4 @@ function docker_compose_realtime( array $options = [] ) {
 
 		return process_realtime( $command );
 	};
-}
-
-
-/**
- * Prints a debug message, if CLI_VERBOSITY is not `0`.
- *
- * @param string $message The debug message to print.
- */
-function debug( $message ) {
-	$verbosity = getenv( 'CLI_VERBOSITY' );
-	if ( empty( $verbosity ) ) {
-		return;
-	}
-	echo '[debug]' . $message;
 }

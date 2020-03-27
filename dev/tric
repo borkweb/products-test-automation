@@ -13,14 +13,17 @@ require_once __DIR__ . '/setup/shell.php';
 
 use function Tribe\Test\args;
 use function Tribe\Test\check_status_or_exit;
+use function Tribe\Test\colorize;
 use function Tribe\Test\docker_compose;
 use function Tribe\Test\docker_compose_realtime;
 use function Tribe\Test\ensure_dev_plugin;
-use function Tribe\Test\load_env_file;
+use function Tribe\Test\light_cyan;
+use function Tribe\Test\red;
 use function Tribe\Test\setup_id;
+use function Tribe\Test\setup_tric_env;
 use function Tribe\Test\stack;
-use function Tribe\Test\using;
-use function Tribe\Test\write_using;
+use function Tribe\Test\tric_target;
+use function Tribe\Test\write_env_file;
 
 // Set up the argument parsing function.
 $args = args( [
@@ -31,77 +34,74 @@ $args = args( [
 $cli_name = basename( $argv[0] );
 const CLI_VERSION = '0.0.1';
 
-$cli_header_template = <<< CLI
-\033[36m%s\033[0m version \033[36m%s\033[0m
+$cli_header = implode( ' - ', [
+	light_cyan( $cli_name ) . ' version ' . light_cyan( CLI_VERSION ),
+	light_cyan( 'Modern Tribe local testing and development tool' )
+] );
 
-\033[36mModern Tribe local testing and development environment tool.\033[0m
+echo $cli_header . PHP_EOL . PHP_EOL;
 
-
-CLI;
-
-echo sprintf( $cli_header_template, $cli_name, CLI_VERSION );
-
-// Set the current run context.
-putenv( 'TRIBE_TRIC=1' );
-
-load_env_file( __DIR__ . '/.env.tric' );
-if ( file_exists( __DIR__ . '/.env.tric.local' ) ) {
-	load_env_file( __DIR__ . '/.env.tric.local' );
-}
+setup_tric_env( __DIR__ );
 
 $help_message_template = <<< HELP
 Available commands:
-	\033[36mhelp\033[0m         Displays this help message.
-	\033[36muse\033[0m          Sets the plugin to use in the tests.
-	\033[36mrun\033[0m          Runs a Codeception test in the stack, the equivalent of \e[36m'codecept run ...'\e[0m.
-	\033[36mcc\033[0m           Runs a Codeception command in the stack, the equivalent of \e[36m'codecept ...'\e[0m.
-	\033[36mcli\033[0m          Runs a wp-cli command in the stack.
-	\033[36mserve\033[0m        Starts the stack and serves it on http://localhost
-	\033[36mcomposer\033[0m     Runs a Composer command in the stack.
-	\033[36mlogs\033[0m         Displays the current stack logs.
-	\033[36mdown\033[0m         Tears down the stack, stopping containers and removing volumes.
-	\033[36mconfig\033[0m       Prints the stack configuration as interpolated from the environment.
+	<light_cyan>help</light_cyan>         Displays this help message.
+	<light_cyan>use</light_cyan>          Sets the plugin to use in the tests.
+	<light_cyan>run</light_cyan>          Runs a Codeception test in the stack, the equivalent of <light_cyan>'codecept run ...'</light_cyan>.
+	<light_cyan>cc</light_cyan>           Runs a Codeception command in the stack, the equivalent of <light_cyan>'codecept ...'</light_cyan>.
+	<light_cyan>shell</light_cyan>        Opens a shell in the Codeception container of the stack.
+	<light_cyan>xdebug</light_cyan>       Activates and deactivated XDebug in the stack.
+	<light_cyan>cli</light_cyan>          Runs a wp-cli command in the stack.
+	<light_cyan>serve</light_cyan>        Starts the stack and serves it on localhost.
+	<light_cyan>composer</light_cyan>     Runs a Composer command in the stack.
+	<light_cyan>logs</light_cyan>         Displays the current stack logs.
+	<light_cyan>down</light_cyan>         Tears down the stack, stopping containers and removing volumes.
+	<light_cyan>config</light_cyan>       Prints the stack configuration as interpolated from the environment.
+	<light_cyan>reset</light_cyan>        Resets {$cli_name} to the initial state as configured by the env files.
+	<light_cyan>debug</light_cyan>        Activates or deactivates {$cli_name} debug output.
+
 HELP;
 
-$help_message = sprintf( $help_message_template );
+$help_message = colorize( $help_message_template );
 
 $is_help = args( [ 'help' ], $args( '...' ), 0 )( 'help', false ) === 'help';
+
+$run_settings_file = __DIR__ . '/.env.tric.run';
 
 switch ( $args( 'subcommand', 'help' ) ) {
 	default:
 	case 'help':
 		echo $help_message;
-		// Show the help text.
 		break;
 	case 'run':
 		if ( $is_help ) {
-			echo "Runs a Codeception test in the stack, the equivalent of \033[36m'codecept run ...'\033[0m.\n";
-			echo "This command requires a use target set using the \033[36muse\033[0m command.\n";
-			echo "usage: \033[36m${argv[0]} run [...<commands>]\033[0m\n";
-			echo "example: \033[36m${argv[0]} run wpunit\033[0m";
+			echo colorize( "Runs a Codeception test in the stack, the equivalent of <light_cyan>'codecept run ...'</light_cyan>.\n" );
+			echo colorize( "This command requires a  set using the <light_cyan>use</light_cyan> command.\n" );
+			echo colorize( "usage: <light_cyan>${argv[0]} run [...<commands>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} run wpunit</light_cyan>" );
 			break;
 		}
-		$using = using( __DIR__ );
 
-		echo "\033[32mUsing {$using}.\033[0m\n";
+		$using = tric_target();
+		echo light_cyan( "Using {$using}\n" );
 
 		setup_id();
 		// Run the command in the Codeception container, exit the same status as the process.
 		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
-		$status        = $tric_realtime( array_merge( [ 'run', '--rm', 'codeception','run' ], $args( '...' ) ) );
+		$status        = $tric_realtime( array_merge( [ 'run', '--rm', 'codeception', 'run' ], $args( '...' ) ) );
 		exit( 0 );
 		break;
 	case 'cc':
 		if ( $is_help ) {
-			echo "Runs a Codeception command in the stack, the equivalent of \033[36m'codecept ...'\033[0m.\n";
-			echo "This command requires a use target set using the \033[36muse\033[0m command.\n";
-			echo "usage: \033[36m${argv[0]} cc [...<commands>]\033[0m\n";
-			echo "example: \033[36m${argv[0]} cc generate:wpunit wpunit Foo\033[0m";
+			echo "Runs a Codeception command in the stack, the equivalent of <light_cyan>'codecept ...'</light_cyan>.\n";
+			echo colorize( "This command requires a  set using the <light_cyan>use</light_cyan> command.\n" );
+			echo colorize( "usage: <light_cyan>${argv[0]} cc [...<commands>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} cc generate:wpunit wpunit Foo</light_cyan>" );
 			break;
 		}
-		$using = using( __DIR__ );
 
-		echo "\033[32mUsing {$using}.\033[0m\n";
+		$using = tric_target();
+		echo light_cyan( "Using {$using}\n" );
 
 		setup_id();
 		// Run the command in the Codeception container, exit the same status as the process.
@@ -109,13 +109,32 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		$status        = $tric_realtime( array_merge( [ 'run', '--rm', 'codeception' ], $args( '...' ) ) );
 		exit( 0 );
 		break;
-	case 'cli':
+	case 'shell':
 		if ( $is_help ) {
-			echo "\033[36mcli\033[0m          Runs a wp-cli command in the stack.\n";
-			echo "signature: \033[36m${argv[0]} cli [...<commands>]\033[0m\n";
-			echo "example: \033[36m${argv[0]} cli plugin list --status=active\033[0m";
+			echo "Opens a shell in the Codeception container of the stack.\n";
+			echo colorize( "This command requires a  set using the <light_cyan>use</light_cyan> command.\n" );
+			echo colorize( "usage: <light_cyan>${argv[0]} shell</light_cyan>\n" );
 			break;
 		}
+
+		$using = tric_target();
+		echo light_cyan( "Using {$using}\n" );
+
+		setup_id();
+		// Run the command in the Codeception container, exit the same status as the process.
+		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+		$shell_args    = array_merge( [ 'run', '--rm', '--entrypoint', 'bash', 'codeception' ], $args( '...' ) );
+		$status        = $tric_realtime( $shell_args );
+		exit( 0 );
+		break;
+	case 'cli':
+		if ( $is_help ) {
+			echo "Runs a wp-cli command in the stack.\n";
+			echo colorize( "signature: <light_cyan>${argv[0]} cli [...<commands>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} cli plugin list --status=active</light_cyan>" );
+			break;
+		}
+
 		setup_id();
 		// Runs a wp-cli command in the stack, using the `cli` service.
 		$composer_command = $args( '...' );
@@ -125,10 +144,11 @@ switch ( $args( 'subcommand', 'help' ) ) {
 	case 'serve':
 		if ( $is_help ) {
 			echo "Starts the stack and serves it on http://localhost\n";
-			echo "usage: \033[36m${argv[0]} serve [<port>]\033[0m\n";
-			echo "example: \033[36m${argv[0]} serve 8923\033[0m";
+			echo colorize( "usage: <light_cyan>${argv[0]} serve [<port>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} serve 8923</light_cyan>" );
 			break;
 		}
+
 		setup_id();
 		$sub_args = args( [ 'port' ], $args( '...' ), 0 );
 		$port     = $sub_args( 'port', '8888' );
@@ -137,55 +157,70 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		check_status_or_exit( $tric( [ 'up', '-d', 'wordpress' ] ) );
 		check_status_or_exit(
 			$tric( [ 'run', '--rm', 'site_waiter' ] ),
-			"\\033[31mWordPress site is not available at http://localhost:" . $port
-			. "; please check the container health.\\033[0m"
+			red( "WordPress site is not available at http://localhost:" . $port
+			     . "; please check the container health." )
 		);
-		echo "\033[32mWordPress site up and running at http://localhost:{$port}\033[0m\n";
+		echo light_cyan( "WordPress site up and running at http://localhost:{$port}\n" );
 		break;
 	case 'logs':
 		if ( $is_help ) {
 			echo "Displays the stack logs.\n";
-			echo "usage: \033[36m${argv[0]} logs\033[0m";
+			echo colorize( "usage: <light_cyan>${argv[0]} logs</light_cyan>" );
 			break;
 		}
+
 		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
 		$tric_realtime( [ 'logs', '--follow' ] );
 		break;
 	case 'down':
 		if ( $is_help ) {
 			echo "Tears down the stack, stopping containers and removing volumes.\n";
-			echo "usage: \033[36m${argv[0]} down\033[0m";
+			echo colorize( "usage: <light_cyan>${argv[0]} down</light_cyan>" );
 			break;
 		}
+
 		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
 		$tric_realtime( [ 'down' ] );
 		break;
 	case 'use':
 		if ( $is_help ) {
 			echo "Sets the plugin to use in the tests.\n";
-			echo "signature: \033[36m${argv[0]} use <target>\033[0m\n";
-			echo "example: \033[36m${argv[0]} use the-events-calendar\033[0m";
+			echo colorize( "signature: <light_cyan>${argv[0]} use <target></light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} use the-events-calendar</light_cyan>" );
 			break;
 		}
-		setup_id();
+
 		$sub_args = args( [ 'target' ], $args( '...' ), 0 );
 		$target   = $sub_args( 'target', false );
 		ensure_dev_plugin( $target );
-		write_using( __DIR__, $target );
+		write_env_file( $run_settings_file, [ 'TRIC_CURRENT_PROJECT' => $target ], true );
 
-		echo "\033[32mUsing {$target}\033[0m";
+		echo light_cyan( "Using {$target}\n" );
+		break;
+	case 'xdebug':
+		if ( $is_help ) {
+			echo "Activates and deactivates the XDebug in the stack.\n";
+			echo colorize( "signature: <light_cyan>${argv[0]} xdebug (on|off)</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} xdebug on</light_cyan>" );
+			break;
+		}
+
+		$toggle = args( [ 'toggle' ], $args( '...' ), 0 )( 'toggle', 'on' );
+		$value  = 'on' === $toggle ? '1' : '0';
+		write_env_file( $run_settings_file, [ 'XDE' => $value ], true );
+		echo 'XDebug status: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
 		break;
 	case 'composer':
 		if ( $is_help ) {
 			echo "Runs a Composer command in the stack.\n";
-			echo "This command requires a use target set using the \033[36muse\033[0m command.\n";
-			echo "usage: \033[36m${argv[0]} composer [...<commands>]\033[0m\n";
-			echo "example: \033[36m${argv[0]} composer install\033[0m";
+			echo colorize( "This command requires a use target set using the <light_cyan>use</light_cyan> command.\n" );
+			echo colorize( "usage: <light_cyan>${argv[0]} composer [...<commands>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} composer install</light_cyan>" );
 			break;
 		}
-		$using = using( __DIR__ );
 
-		echo "\033[32mUsing {$using}.\033[0m\n";
+		$using = tric_target();
+		echo light_cyan( "Using {$using}\n" );
 
 		setup_id();
 		$composer_command = $args( '...' );
@@ -195,13 +230,49 @@ switch ( $args( 'subcommand', 'help' ) ) {
 	case 'config':
 		if ( $is_help ) {
 			echo "Prints the stack configuration as interpolated from the environment.\n";
-			echo "usage: \033[36m${argv[0]} config\033[0m";
+			echo colorize( "usage: <light_cyan>${argv[0]} config</light_cyan>" );
 			break;
 		}
-		$using = using( __DIR__ );
+
+		$using = tric_target();
 		setup_id();
 		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
 		$tric_realtime( [ 'config' ] );
+		break;
+	case 'reset':
+		if ( $is_help ) {
+			echo "Resets the tool to its initial state configured by the env files.\n";
+			echo colorize( "usage: <light_cyan>${argv[0]} reset</light_cyan>" );
+			break;
+		}
+
+		if ( ! file_exists( $run_settings_file ) ) {
+			echo light_cyan( 'Done' );
+			break;
+		}
+
+		$removed = unlink( $run_settings_file );
+
+		if ( false === $removed ) {
+			echo red( "Could not remove the {$run_settings_file} file; remove it manually.\n" );
+			exit( 1 );
+		}
+
+		echo light_cyan( 'Done' );
+
+		break;
+	case 'debug':
+		if ( $is_help ) {
+			echo "Activates or deactivates {$cli_name} debug output.\n";
+			echo colorize( "signature: <light_cyan>${argv[0]} debug (on|off)</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} debug on</light_cyan>" );
+			break;
+		}
+
+		$toggle = args( [ 'toggle' ], $args( '...' ), 0 )( 'toggle', 'on' );
+		$value  = 'on' === $toggle ? '1' : '0';
+		write_env_file( $run_settings_file, [ 'CLI_VERBOSITY' => $value ], true );
+		echo 'Debug status: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
 		break;
 }
 
