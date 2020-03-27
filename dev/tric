@@ -56,6 +56,7 @@ Available commands:
 	<light_cyan>serve</light_cyan>        Starts the stack and serves it on localhost.
 	<light_cyan>composer</light_cyan>     Runs a Composer command in the stack.
 	<light_cyan>logs</light_cyan>         Displays the current stack logs.
+	<light_cyan>up</light_cyan>           Starts a container part of the stack.
 	<light_cyan>down</light_cyan>         Tears down the stack, stopping containers and removing volumes.
 	<light_cyan>config</light_cyan>       Prints the stack configuration as interpolated from the environment.
 	<light_cyan>reset</light_cyan>        Resets {$cli_name} to the initial state as configured by the env files.
@@ -350,6 +351,19 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		$value = 'on' === $toggle ? '1' : '0';
 		write_env_file( $run_settings_file, [ 'CLI_VERBOSITY' => $value ], true );
 		echo 'Debug status: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
+		break;
+	case 'up':
+		if ( $is_help ) {
+			echo "Starts a container part of the stack.\n";
+			echo PHP_EOL;
+			echo colorize( "signature: <light_cyan>${argv[0]} up <service></service></light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} up adminer</light_cyan>" );
+			break;
+		}
+
+		$service       = args( [ 'service' ], $args( '...' ), 0 )( 'service', 'wordpress' );
+		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+		$tric_realtime( [ 'up', '-d', $service ] );
 		break;
 }
 

@@ -139,3 +139,11 @@ services:
       # Set the current plugin as project.
       - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
 
+  adminer:
+    image: adminer
+    networks:
+      - tric
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - "9080:8080"
