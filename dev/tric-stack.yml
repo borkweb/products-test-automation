@@ -105,6 +105,12 @@ services:
     extra_hosts:
       - "wordpress.test:172.${TRIC_TEST_SUBNET:-28}.1.1"
     environment:
+      # Set these values to allow the container to look wordpress up.
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: password
+      WORDPRESS_DB_NAME: test
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_URL: http://wordpress.test
       # Configure this to debug the tests with XDebug.
       # Map the `dev/wordpress` directory to `/var/www/html' directory in your IDE of choice.
       # Map the `dev/plugins` directory to `/var/www/plugins' directory in your IDE of choice.
