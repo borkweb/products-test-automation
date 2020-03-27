@@ -22,7 +22,9 @@ services:
   wordpress:
     image: wordpress:latest
     networks:
-      - tric
+      tric:
+        # Allow the other conatiners to read this container with a pretty URL.
+        ipv4_address: 172.${TRIC_TEST_SUBNET:-28}.1.1
     depends_on:
       - db
     # Run the container as the host user and group.
@@ -91,7 +93,9 @@ services:
     image: curlimages/curl
     networks:
       - tric
-    command: -Lkfv --retry-connrefused --retry 15 --retry-delay 2 -o /dev/null --stderr /dev/null wordpress:80
+    extra_hosts:
+      - "wordpress.test:172.${TRIC_TEST_SUBNET:-28}.1.1"
+    command: -Lkfv --retry-connrefused --retry 15 --retry-delay 2 -o /dev/null --stderr /dev/null wordpress.test:80
 
   chrome:
     image: selenium/standalone-chrome:3.141.59-oxygen
