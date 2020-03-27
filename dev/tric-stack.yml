@@ -48,8 +48,10 @@ services:
       # Pull plugins from the `/plugins` directory to allow debugging the files we're working on.
       WORDPRESS_CONFIG_EXTRA: |
         define( 'WP_PLUGIN_DIR', '/plugins' );
-        define( 'WP_HOME', 'http://wordpress.test' );
-        define( 'WP_SITEURL', 'http://wordpress.test' );
+        $$scheme = empty( $$_SERVER['HTTPS'] ) ? 'http' : 'https';
+        $$url    = isset( $$_SERVER['HTTP_HOST'] ) ? $$_SERVER['HTTP_HOST'] : 'wordpress.test';
+        define( 'WP_HOME', $$scheme . '://' . $$url );
+        define( 'WP_SITEURL', $$scheme . '://' . $$url );
       # Configure this to debug the tests with XDebug.
       # Map the `dev/_wordpress` directory to `/var/www/html' directory in your IDE of choice.
       # Map the `dev/_plugins` directory to `/plugins` directory in your IDE of choice.
