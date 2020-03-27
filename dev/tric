@@ -50,7 +50,7 @@ Available commands:
 	<light_cyan>using</light_cyan>        Returns the current <light_cyan>use</light_cyan> target.
 	<light_cyan>run</light_cyan>          Runs a Codeception test in the stack, the equivalent of <light_cyan>'codecept run ...'</light_cyan>.
 	<light_cyan>cc</light_cyan>           Runs a Codeception command in the stack, the equivalent of <light_cyan>'codecept ...'</light_cyan>.
-	<light_cyan>shell</light_cyan>        Opens a shell in the Codeception container of the stack.
+	<light_cyan>shell</light_cyan>        Opens a shell in a stack service, defaults to the 'codeception' one.
 	<light_cyan>xdebug</light_cyan>       Activates and deactivated XDebug in the stack, returns the current XDebug status or sets its values.
 	<light_cyan>cli</light_cyan>          Runs a wp-cli command in the stack.
 	<light_cyan>serve</light_cyan>        Starts the stack and serves it on localhost.
@@ -115,12 +115,16 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		break;
 	case 'shell':
 		if ( $is_help ) {
-			echo "Opens a shell in the Codeception container of the stack.\n";
+			echo "Opens a shell in a stack service, defaults to the 'codeception' one.\n";
 			echo PHP_EOL;
 			echo colorize( "This command requires a  set using the <light_cyan>use</light_cyan> command.\n" );
 			echo colorize( "usage: <light_cyan>${argv[0]} shell</light_cyan>\n" );
+			echo colorize( "usage: <light_cyan>${argv[0]} shell chrome</light_cyan>\n" );
 			break;
 		}
+
+		$service_args = args( [ 'service', '...' ], $args( '...' ), 0 );
+		$service      = $service_args( 'service', 'codeception' );
 
 		$using = tric_target();
 		echo light_cyan( "Using {$using}\n" );
@@ -128,7 +132,8 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		setup_id();
 		// Run the command in the Codeception container, exit the same status as the process.
 		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
-		$shell_args    = array_merge( [ 'run', '--rm', '--entrypoint', 'bash', 'codeception' ], $args( '...' ) );
+		$service       = 'codeception';
+		$shell_args    = array_merge( [ 'run', '--rm', '--entrypoint', 'bash', $service ], $service_args( '...' ) );
 		$status        = $tric_realtime( $shell_args );
 		exit( 0 );
 		break;
