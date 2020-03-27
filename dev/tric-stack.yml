@@ -47,8 +47,8 @@ services:
       WORDPRESS_CONFIG_EXTRA: |
         define( 'WP_PLUGIN_DIR', '/plugins' );
       # Configure this to debug the tests with XDebug.
-      # Map the `dev/test/wordpress` directory to `/var/www/html' directory in your IDE of choice.
-      # Map the `dev/test/plugins` directory to `/plugins` directory in your IDE of choice.
+      # Map the `dev/_wordpress` directory to `/var/www/html' directory in your IDE of choice.
+      # Map the `dev/_plugins` directory to `/plugins` directory in your IDE of choice.
       PHP_IDE_CONFIG: "serverName=${XDK:-tric}"
       # The `remote_host` is set to `host.docker.internal` that will resolve to the host machine IP address, from
       # within the container, on macOS and Windows.
@@ -57,9 +57,9 @@ services:
       XDEBUG_CONFIG: "idekey=${XDK:-tric} remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
     volumes:
       # Paths are relative to the directory that contains this file, NOT the current working directory.
-      # Share the WordPress core installation files in the `dev/wordpress` directory.
+      # Share the WordPress core installation files in the `dev/_wordpress` directory.
       - ./_wordpress:/var/www/html
-      # Share the WordPress core installation files in the `dev/plugins` directory.
+      # Share the WordPress core installation files in the `dev/_plugins` directory.
       - ./_plugins:/plugins
 
   cli:
@@ -69,8 +69,8 @@ services:
       - tric
     environment:
       # Configure this to debug the tests with XDebug.
-      # Map the `dev/wordpress` directory to `/var/www/html' directory in your IDE of choice.
-      # Map the `dev/plugins` directory to `/var/www/plugins' directory in your IDE of choice.
+      # Map the `dev/_wordpress` directory to `/var/www/html' directory in your IDE of choice.
+      # Map the `dev/_plugins` directory to `/plugins' directory in your IDE of choice.
       PHP_IDE_CONFIG: "serverName=${XDK:-tric}"
       # The `remote_host` is set to `host.docker.internal` that will resolve to the host machine IP address, from
       # within the container, on macOS and Windows.
@@ -79,9 +79,9 @@ services:
       XDEBUG_CONFIG: "idekey=${XDK:-tric} remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
     volumes:
       # Paths are relative to the directory that contains this file, NOT the current working directory.
-      # Share the WordPress core installation files in the `dev/wordpress` directory.
+      # Share the WordPress core installation files in the `dev/_wordpress` directory.
       - ./_wordpress:/var/www/html
-      # Share the WordPress core installation files in the `dev/plugins` directory.
+      # Share the WordPress core installation files in the `dev/_plugins` directory.
       - ./_plugins:/plugins
 
   site_waiter:
@@ -112,23 +112,25 @@ services:
       WORDPRESS_DB_HOST: db
       WORDPRESS_URL: http://wordpress.test
       # Configure this to debug the tests with XDebug.
-      # Map the `dev/wordpress` directory to `/var/www/html' directory in your IDE of choice.
-      # Map the `dev/plugins` directory to `/var/www/plugins' directory in your IDE of choice.
-      PHP_IDE_CONFIG: "serverName=${XDK:-tric}"
+      # Map the `dev/_wordpress` directory to `/var/www/html' directory in your IDE of choice.
+      # Map the `dev/_plugins` directory to `/plugins' directory in your IDE of choice.
+      PHP_IDE_CONFIG: "serverName=${XDK:-tric}_cc"
       # The `remote_host` is set to `host.docker.internal` that will resolve to the host machine IP address, from
       # within the container, on macOS and Windows.
       # On Linux set the host machine IP address before calling the stack:
       # XDH=$(ip route | grep docker0 | awk '{print $9}') docker-compose ...
-      XDEBUG_CONFIG: "idekey=${XDK:-tric} remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
+      XDEBUG_CONFIG: "idekey=${XDK:-tric}_cc remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
+      # Move to the target directory before running the command.
+      CODECEPTION_PROJECT_DIR: /plugins/${TRIC_CURRENT_PROJECT:-test}
     depends_on:
       - wordpress
       - chrome
     volumes:
-      # Set the current plugin as project.
-      - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
       # Paths are relative to the directory that contains this file, NOT the current working directory.
-      # Share the WordPress core installation files in the `dev/wordpress` directory.
+      # Share the WordPress core installation files in the `dev/_wordpress` directory.
       - ./_wordpress:/var/www/html
+      # Share the WordPress core installation files in the `dev/_plugins` directory.
+      - ./_plugins:/plugins
 
   composer:
     image: lucatume/composer:php7.2
