@@ -224,6 +224,7 @@ function setup_id( $reset = false ) {
 	}
 	putenv( 'DOCKER_RUN_UID=' . uid() );
 	putenv( 'DOCKER_RUN_GID=' . gid() );
+	putenv( 'DOCKER_RUN_SSH_AUTH_SOCK=' . ssh_auth_sock() );
 }
 
 /**
@@ -430,4 +431,22 @@ function debug( $message ) {
 	}
 
 	echo magenta( "[debug] " . $message );
+}
+
+/**
+ * Reads the SSH_AUTH_SOCK from environment and tries to provide guidance if not set.
+ *
+ * @return string The `SSH_AUTH_SOCK` environment variable variable value.
+ */
+function ssh_auth_sock() {
+	$env_ssh_sock = getenv( 'SSH_AUTH_SOCK' );
+	if ( ! empty( $env_ssh_sock ) ) {
+		debug( 'SSH_AUTH_SOCK read from environment.' . PHP_EOL );
+
+		return $env_ssh_sock;
+	}
+
+	echo colorize( "<red>SSH_AUTH_SOCK environment variable is not set!</red>\n" );
+	echo colorize( "Read why and how to debug here: <light_cyan>https://developer.github.com/v3/guides/using-ssh-agent-forwarding/</light_cyan>\n" );
+	exit( 1 );
 }
