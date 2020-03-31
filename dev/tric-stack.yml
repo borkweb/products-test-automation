@@ -146,6 +146,19 @@ services:
     volumes:
       # Set the current plugin as project.
       - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
+      # Share SSH keys with the container to pull from private repositories.
+      - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent
+
+  npm:
+    build:
+      context: test/_containers/npm
+    image: tric_npm
+    user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
+    volumes:
+      # Set the current plugin as project.
+      - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
+      # Share SSH keys with the container to pull from private repositories.
+      - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent
 
   adminer:
     image: adminer

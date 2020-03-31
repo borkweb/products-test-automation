@@ -55,9 +55,11 @@ Available commands:
 	<light_cyan>cli</light_cyan>          Runs a wp-cli command in the stack.
 	<light_cyan>serve</light_cyan>        Starts the stack and serves it on localhost.
 	<light_cyan>composer</light_cyan>     Runs a Composer command in the stack.
+	<light_cyan>npm</light_cyan>          Runs an npm command in the stack.
 	<light_cyan>logs</light_cyan>         Displays the current stack logs.
 	<light_cyan>up</light_cyan>           Starts a container part of the stack.
 	<light_cyan>down</light_cyan>         Tears down the stack, stopping containers and removing volumes.
+	<light_cyan>build</light_cyan>        Builds the stack containers that require it, or builds a specific service image.
 	<light_cyan>config</light_cyan>       Prints the stack configuration as interpolated from the environment.
 	<light_cyan>reset</light_cyan>        Resets {$cli_name} to the initial state as configured by the env files.
 	<light_cyan>debug</light_cyan>        Activates or deactivates {$cli_name} debug output or returns the current debug status.
@@ -118,8 +120,8 @@ switch ( $args( 'subcommand', 'help' ) ) {
 			echo "Opens a shell in a stack service, defaults to the 'codeception' one.\n";
 			echo PHP_EOL;
 			echo colorize( "This command requires a  set using the <light_cyan>use</light_cyan> command.\n" );
-			echo colorize( "usage: <light_cyan>${argv[0]} shell</light_cyan>\n" );
-			echo colorize( "usage: <light_cyan>${argv[0]} shell chrome</light_cyan>\n" );
+			echo colorize( "usage: <light_cyan>${argv[0]} shell [<service>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} shell chrome</light_cyan>\n" );
 			break;
 		}
 
@@ -132,8 +134,27 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		setup_id();
 		// Run the command in the Codeception container, exit the same status as the process.
 		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
-		$service       = 'codeception';
 		$shell_args    = array_merge( [ 'run', '--rm', '--entrypoint', 'bash', $service ], $service_args( '...' ) );
+		$status        = $tric_realtime( $shell_args );
+		exit( 0 );
+		break;
+	case 'build':
+		if ( $is_help ) {
+			echo "Builds the stack containers that require it, or builds a specific service image.\n";
+			echo PHP_EOL;
+			echo colorize( "usage: <light_cyan>${argv[0]} build [<service>] [...<args>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} build</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} build npm</light_cyan>\n" );
+			break;
+		}
+
+		$service_args = args( [ 'service', '...' ], $args( '...' ), 0 );
+		$service      = $service_args( 'service', '' );
+
+		setup_id();
+		// Run the command in the Codeception container, exit the same status as the process.
+		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+		$shell_args    = array_merge( [ 'build', $service ], $service_args( '...' ) );
 		$status        = $tric_realtime( $shell_args );
 		exit( 0 );
 		break;
@@ -369,6 +390,24 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		$service       = args( [ 'service' ], $args( '...' ), 0 )( 'service', 'wordpress' );
 		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
 		$tric_realtime( [ 'up', '-d', $service ] );
+		break;
+	case 'npm':
+		if ( $is_help ) {
+			echo "Runs an npm command in the stack.\n";
+			echo PHP_EOL;
+			echo colorize( "This command requires a use target set using the <light_cyan>use</light_cyan> command.\n" );
+			echo colorize( "usage: <light_cyan>${argv[0]} npm [...<commands>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} npm install</light_cyan>" );
+			break;
+		}
+
+		$using = tric_target();
+		echo light_cyan( "Using {$using}\n" );
+
+		setup_id();
+		$npm_command   = $args( '...' );
+		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+		$tric_realtime( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
 		break;
 }
 
