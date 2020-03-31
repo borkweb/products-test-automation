@@ -27,7 +27,7 @@ function style( $string, $color_code ) {
  * @return string The colorized string.
  */
 function light_cyan( $string ) {
-	return style( $string, 96 );
+	return style( $string, '1;36' );
 }
 
 /**
