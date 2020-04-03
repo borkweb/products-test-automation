@@ -52,7 +52,7 @@ function process_realtime( $command ) {
  * Unsets the PHP max execution time allowing the PHP thread to run without time limit.
  */
 function remove_time_limit() {
-	set_time_limit( 0 );;
+	change_time_limit( 0 );
 }
 
 /**
@@ -62,7 +62,7 @@ function remove_time_limit() {
  *
  * @param int $time_limit The time limit to set, setting the value to `0` will remove the execution time limit.
  */
-function set_time_limit( $time_limit = 0 ) {
+function change_time_limit( $time_limit = 0 ) {
 	ini_set( 'max_execution_time', $time_limit );
 }
 
