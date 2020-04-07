@@ -450,3 +450,35 @@ function ssh_auth_sock() {
 	echo colorize( "Read why and how to debug here: <light_cyan>https://developer.github.com/v3/guides/using-ssh-agent-forwarding/</light_cyan>\n" );
 	exit( 1 );
 }
+
+/**
+ * Prompts the user for an answer to a question.
+ *
+ * If the default value is a 'yes' or a 'no' (-ish), then the return value will be cast to a boolean.
+ *
+ * @param      string $question The question to ask, including the question mark?
+ * @param null|string $default The default value for the answer.
+ *
+ * @return string|null The user answer or the default value if the user did not provide an answer to the question.
+ */
+function ask( $question, $default = null ) {
+	$prompt = colorize( "<bold>{$question}</bold>" );
+
+	if ( null !== $default && '' !== $default ) {
+		$prompt .= " ({$default})";
+	}
+
+	$is_boolean = false;
+	if ( is_bool( $default ) || preg_match( '/(^yes|no)$/i', $default ) ) {
+		// It's a yes or no question, cast to boolean at the end.
+		$is_boolean = true;
+	}
+
+	$value = readline( $prompt . ' ' );
+
+	if ( $is_boolean ) {
+		return preg_match( '/^y/i', $value );
+	}
+
+	return '' === $value ? $default : $value;
+}

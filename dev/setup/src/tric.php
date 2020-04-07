@@ -73,3 +73,45 @@ function tric_target( $require = true ) {
 
 	return trim( $using );
 }
+
+/**
+ * Returns a map of the stack PHP services that relates the service to its pretty name.
+ *
+ * @return array<string,string> A map of the stack PHP services relating each service to its pretty name.
+ */
+function php_services() {
+	return [
+		'wordpress'   => 'WordPress',
+		'codeception' => 'Codeception',
+	];
+}
+
+/**
+ * Restart the stack PHP services.
+ */
+function restart_php_services() {
+	foreach ( php_services() as $service => $pretty_name ) {
+		restart_service( $service, $pretty_name );
+	}
+}
+
+/**
+ * Restarts a stack services if it's running.
+ *
+ * @param string      $service     The name of the service to restart, e.g. `wordpress`.
+ * @param string|null $pretty_name The pretty name to use for the service, or `null` to use the service name.
+ */
+function restart_service( $service, $pretty_name = null ) {
+	$pretty_name   = $pretty_name ?: $service;
+	$tric          = docker_compose( [ '-f', stack() ] );
+	$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+
+	$service_running = $tric( [ 'ps', '-q', $service ] )( 'string_output' );
+	if ( ! empty( $service_running ) ) {
+		echo colorize( "Restarting {$pretty_name} service...\n" );
+		$tric_realtime( [ 'restart', $service ] );
+		echo colorize( "<light_cyan>{$pretty_name} service restarted!</light_cyan>\n" );
+	} else {
+		echo colorize( "{$pretty_name} service was not running.\n" );
+	}
+}
