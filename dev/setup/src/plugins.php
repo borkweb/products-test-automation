@@ -3,6 +3,13 @@
  * Plugin related functions for the build PHP scripts.
  */
 
+namespace Tribe\Test;
+
+use CallbackFilterIterator;
+use Exception;
+use FilesystemIterator;
+use SplFileInfo;
+
 require_once __DIR__ . '/nightly.php';
 
 /**
@@ -340,7 +347,7 @@ function download_plugin_versions( array $plugin_versions ) {
  */
 function random_plugins( $dir ) {
 	$available_zips_iterator = new CallbackFilterIterator(
-		new FilesystemIterator( $dir, FilesystemIterator::SKIP_DOTS ),
+		new \FilesystemIterator( $dir, FilesystemIterator::SKIP_DOTS ),
 		static function ( SplFileInfo $f ) {
 			// Either a semantic version or the nightly/dev hash.
 			$plugin_zip_pattern = '/[\\w_-]+-([0-9\\.]+|dev-[\\w]+)\\.zip$/uis';
@@ -464,4 +471,34 @@ function plugin_nightly_builds( callable $args ) {
 	}
 
 	return $map;
+}
+
+/**
+ * Returns a list of the available plugins in the `dev/_plugins` directory.
+ *
+ * @return array<string,SplFileInfo> A map of each directory in the `dev/_plugins` directory to the corresponding file
+ *                                   information.
+ */
+function dev_plugins() {
+	$dev_plugins     = [];
+	$options         = FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS;
+	$dev_plugins_dir = new CallbackFilterIterator( new FilesystemIterator( dev( '_plugins' ), $options ),
+		static function ( SplFileInfo $file ) {
+			return $file->isDir();
+		}
+	);
+
+	$allowed_subdirs = [ 'common' ];
+	foreach ( iterator_to_array( $dev_plugins_dir ) as $key => $value ) {
+		$basename                 = basename( $key );
+		$dev_plugins[ $basename ] = $value;
+		foreach ( $allowed_subdirs as $subdir ) {
+			$subdir_path = $value . '/' . $subdir;
+			if ( file_exists( $subdir_path ) ) {
+				$dev_plugins[ $basename . '/' . $subdir ] = $subdir_path;
+			}
+		}
+	}
+
+	return $dev_plugins;
 }

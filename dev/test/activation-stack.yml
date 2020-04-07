@@ -49,6 +49,9 @@ services:
       - test
     depends_on:
       - db
+    ports:
+      # Allow reaching the site at `http://localhost:8888`.
+      - "8888:80"
     environment:
       WORDPRESS_DB_USER: root
       WORDPRESS_DB_PASSWORD: password

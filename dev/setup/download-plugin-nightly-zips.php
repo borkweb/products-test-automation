@@ -4,6 +4,8 @@
  * CI script to download the latest nightly builds of the plugins for the specified branch.
  */
 
+namespace Tribe\Test;
+
 require_once __DIR__ . '/src/utils.php';
 require_once __DIR__ . '/src/plugins.php';
 

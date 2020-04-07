@@ -3,6 +3,8 @@
  * PUE related functions.
  */
 
+namespace Tribe\Test;
+
 /**
  * Return the complete URL to the PUE service for an endpoint and arguments.
  *

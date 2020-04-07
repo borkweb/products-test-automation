@@ -4,6 +4,8 @@
  * CI script to download the last n versions of some, or all, .org and premium plugins.
  */
 
+namespace Tribe\Test;
+
 require_once __DIR__ . '/src/utils.php';
 require_once __DIR__ . '/src/plugins.php';
 

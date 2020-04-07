@@ -4,6 +4,10 @@
  * CI script to randomly activate plugins previously downloaded using the `dev/setup/download-plugins-zip.php` script.
  */
 
+use function Tribe\Test\prepare_wordpress;
+use function Tribe\Test\random_wordpress_version;
+use function Tribe\Test\randomly_activate_plugins;
+
 require_once __DIR__ . '/setup/docker.php';
 require_once __DIR__ . '/setup/wordpress.php';
 require_once __DIR__ . '/test/tests.php';

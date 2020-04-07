@@ -3,6 +3,8 @@
  * Utilities and functions to interact w/ the nightly build service.
  */
 
+namespace Tribe\Test;
+
 /**
  * Returns the base nightly build service URL.
  *
