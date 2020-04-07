@@ -5,6 +5,7 @@ require_once __DIR__ . '/setup/src/utils.php';
 require_once __DIR__ . '/setup/src/pue.php';
 require_once __DIR__ . '/setup/src/plugins.php';
 require_once __DIR__ . '/setup/src/nightly.php';
+require_once __DIR__ . '/setup/src/scaffold.php';
 require_once __DIR__ . '/setup/src/tric.php';
 require_once __DIR__ . '/setup/docker.php';
 require_once __DIR__ . '/setup/wordpress.php';
@@ -45,24 +46,35 @@ setup_tric_env( __DIR__ );
 
 $help_message_template = <<< HELP
 Available commands:
-	<light_cyan>help</light_cyan>         Displays this help message.
-	<light_cyan>use</light_cyan>          Sets the plugin to use in the tests.
-	<light_cyan>using</light_cyan>        Returns the current <light_cyan>use</light_cyan> target.
-	<light_cyan>run</light_cyan>          Runs a Codeception test in the stack, the equivalent of <light_cyan>'codecept run ...'</light_cyan>.
-	<light_cyan>cc</light_cyan>           Runs a Codeception command in the stack, the equivalent of <light_cyan>'codecept ...'</light_cyan>.
-	<light_cyan>shell</light_cyan>        Opens a shell in a stack service, defaults to the 'codeception' one.
-	<light_cyan>xdebug</light_cyan>       Activates and deactivated XDebug in the stack, returns the current XDebug status or sets its values.
-	<light_cyan>cli</light_cyan>          Runs a wp-cli command in the stack.
-	<light_cyan>serve</light_cyan>        Starts the stack and serves it on localhost.
-	<light_cyan>composer</light_cyan>     Runs a Composer command in the stack.
-	<light_cyan>npm</light_cyan>          Runs an npm command in the stack.
-	<light_cyan>logs</light_cyan>         Displays the current stack logs.
-	<light_cyan>up</light_cyan>           Starts a container part of the stack.
-	<light_cyan>down</light_cyan>         Tears down the stack, stopping containers and removing volumes.
-	<light_cyan>build</light_cyan>        Builds the stack containers that require it, or builds a specific service image.
-	<light_cyan>config</light_cyan>       Prints the stack configuration as interpolated from the environment.
-	<light_cyan>reset</light_cyan>        Resets {$cli_name} to the initial state as configured by the env files.
-	<light_cyan>debug</light_cyan>        Activates or deactivates {$cli_name} debug output or returns the current debug status.
+-------------------
+<yellow>General Usage:</yellow>
+<light_cyan>use</light_cyan>          Sets the plugin to use in the tests.
+<light_cyan>using</light_cyan>        Returns the current <light_cyan>use</light_cyan> target.
+<light_cyan>run</light_cyan>          Runs a Codeception test in the stack, the equivalent of <light_cyan>'codecept run ...'</light_cyan>.
+
+<yellow>Setup:</yellow>
+<light_cyan>init</light_cyan>         Initializes a plugin for use in tric.
+<light_cyan>composer</light_cyan>     Runs a Composer command in the stack.
+<light_cyan>npm</light_cyan>          Runs an npm command in the stack.
+<light_cyan>xdebug</light_cyan>       Activates and deactivated XDebug in the stack, returns the current XDebug status or sets its values.
+
+<yellow>Advanced Usage:</yellow>
+<light_cyan>cc</light_cyan>           Runs a Codeception command in the stack, the equivalent of <light_cyan>'codecept ...'</light_cyan>.
+<light_cyan>shell</light_cyan>        Opens a shell in a stack service, defaults to the 'codeception' one.
+<light_cyan>cli</light_cyan>          Runs a wp-cli command in the stack.
+<light_cyan>reset</light_cyan>        Resets {$cli_name} to the initial state as configured by the env files.
+
+<yellow>Info:</yellow>
+<light_cyan>config</light_cyan>       Prints the stack configuration as interpolated from the environment.
+<light_cyan>debug</light_cyan>        Activates or deactivates {$cli_name} debug output or returns the current debug status.
+<light_cyan>help</light_cyan>         Displays this help message.
+<light_cyan>logs</light_cyan>         Displays the current stack logs.
+
+<yellow>Containers:</yellow>
+<light_cyan>build</light_cyan>        Builds the stack containers that require it, or builds a specific service image.
+<light_cyan>down</light_cyan>         Tears down the stack, stopping containers and removing volumes.
+<light_cyan>up</light_cyan>           Starts a container part of the stack.
+<light_cyan>serve</light_cyan>        Starts the stack and serves it on localhost.
 
 HELP;
 
@@ -76,6 +88,69 @@ switch ( $args( 'subcommand', 'help' ) ) {
 	default:
 	case 'help':
 		echo $help_message;
+		break;
+	case 'init':
+		if ( $is_help ) {
+			echo "Initializes a plugin for use in tric.\n";
+			echo PHP_EOL;
+			echo colorize( "signature: <light_cyan>${argv[0]} init <plugin></light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} init the-events-calendar</light_cyan>\n" );
+			break;
+		}
+
+		$sub_args    = args( [ 'plugin' ], $args( '...' ), 0 );
+		$plugin      = $sub_args( 'plugin', false );
+
+		// If a plugin isn't passed as an argument, the target is the current plugin being used.
+		if ( empty( $plugin ) ) {
+			$plugin = tric_target();
+			echo light_cyan( "Using {$plugin}\n" );
+		}
+
+		$plugin_path = __DIR__ . '/_plugins/' . $plugin;
+
+		if ( ! file_exists( $plugin_path ) ) {
+			if ( ! file_exists( __DIR__ . '/_plugins' ) ) {
+				echo light_cyan( "Creating dev/_plugins directory\n" );
+				mkdir( __DIR__ . '/_plugins' );
+			}
+
+			echo colorize( "Cloning <yellow>{$plugin}</yellow>\n" );
+
+			shell_exec( 'git clone --recursive git@github.com:moderntribe/' . escapeshellcmd( $plugin ) . '.git ' . escapeshellcmd( $plugin_path ) );
+		}
+
+		$relative_paths = [ '' ];
+		if ( file_exists( "{$plugin_path}/common" ) ) {
+			$relative_paths[] = 'common';
+		}
+
+		$skipped = false;
+		foreach ( $relative_paths as $relative_path ) {
+			$target_path = "{$plugin_path}/{$relative_path}";
+			$relative_path = empty( $relative_path ) ? '' : "{$relative_path}/";
+
+			if ( Tribe\Test\generate_test_config( $target_path ) ) {
+				echo colorize( "Created/updated <yellow>{$relative_path}test-config.tric.php</yellow> in {$plugin}\n" );
+			}
+
+			if ( Tribe\Test\generate_tric_env( $target_path ) ) {
+				echo colorize( "Created/updated <yellow>{$relative_path}.env.testing.tric</yellow> in {$plugin}\n" );
+			}
+
+			if ( Tribe\Test\maybe_generate_codeception_yml( $target_path ) ) {
+				echo colorize( "Created <yellow>{$relative_path}codeception.yml</yellow> in {$plugin}\n" );
+			} else {
+				$skipped = true;
+				echo colorize( "<magenta>Skipped creating</magenta> <yellow>{$relative_path}codeception.yml</yellow> <magenta>in {$plugin}. It already exists</magenta> (*).\n" );
+			}
+		}
+
+		if ( $skipped ) {
+			echo colorize( "\n(*) A skipped codeception.yml file could be ok. If your tests fail to run, try removing the codeception.yml and running <yellow>tric init <plugin></yellow> again.\n\n" );
+		}
+
+		echo light_cyan( "Finished initializing {$plugin}\n" );
 		break;
 	case 'run':
 		if ( $is_help ) {

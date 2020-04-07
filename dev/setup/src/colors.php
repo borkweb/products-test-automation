@@ -64,6 +64,17 @@ function green( $string ) {
 }
 
 /**
+ * Colorizes a string in yellow.
+ *
+ * @param string $string The string to colorize.
+ *
+ * @return string The colorized string.
+ */
+function yellow( $string ) {
+	return style( $string, 33 );
+}
+
+/**
  * Colorizes and styles a string.
  *
  * Colors and styles placeholders should have the `<color>...</color>` format.
