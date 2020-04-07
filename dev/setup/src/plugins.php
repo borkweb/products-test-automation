@@ -474,6 +474,21 @@ function plugin_nightly_builds( callable $args ) {
 }
 
 /**
+ * Returns the full plugin path directory.
+ *
+ * @return string
+ */
+function get_plugin_root() {
+	$plugin_path = trim( getenv( 'TRIC_PLUGIN_PATH' ) );
+
+	if ( 0 !== strpos( $plugin_path, '/' ) ) {
+		$plugin_path = dev( trim( $plugin_path, '.' ) );
+	}
+
+	return $plugin_path;
+}
+
+/**
  * Returns a list of the available plugins in the `dev/_plugins` directory.
  *
  * @return array<string,SplFileInfo> A map of each directory in the `dev/_plugins` directory to the corresponding file
@@ -482,7 +497,9 @@ function plugin_nightly_builds( callable $args ) {
 function dev_plugins() {
 	$dev_plugins     = [];
 	$options         = FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS;
-	$dev_plugins_dir = new CallbackFilterIterator( new FilesystemIterator( dev( '_plugins' ), $options ),
+	$plugin_path     = get_plugin_root();
+
+	$dev_plugins_dir = new CallbackFilterIterator( new FilesystemIterator( $plugin_path, $options ),
 		static function ( SplFileInfo $file ) {
 			return $file->isDir();
 		}

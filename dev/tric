@@ -53,6 +53,7 @@ Available commands:
 <light_cyan>run</light_cyan>          Runs a Codeception test in the stack, the equivalent of <light_cyan>'codecept run ...'</light_cyan>.
 
 <yellow>Setup:</yellow>
+<light_cyan>here</light_cyan>         Sets the current plugins directory to be the one used by tric.
 <light_cyan>init</light_cyan>         Initializes a plugin for use in tric.
 <light_cyan>composer</light_cyan>     Runs a Composer command in the stack.
 <light_cyan>npm</light_cyan>          Runs an npm command in the stack.
@@ -89,6 +90,33 @@ switch ( $args( 'subcommand', 'help' ) ) {
 	case 'help':
 		echo $help_message;
 		break;
+	case 'here':
+		if ( $is_help ) {
+			echo "Sets the current plugins directory to be the one used by tric.\n";
+			echo PHP_EOL;
+			echo colorize( "signature: <light_cyan>${argv[0]} here</light_cyan>\n" );
+			echo colorize( "signature: <light_cyan>${argv[0]} here reset</light_cyan>\n" );
+			break;
+		}
+
+		$sub_args    = args( [ 'reset' ], $args( '...' ), 0 );
+		$reset       = $sub_args( 'reset', false );
+
+		if ( empty( $reset ) ) {
+			$current_path = getcwd();
+		} else {
+			$current_path = './_plugins';
+		}
+
+		write_env_file( $run_settings_file, [ 'TRIC_PLUGIN_PATH' => $current_path ], true );
+
+		shell_exec( __DIR__ . '/tric down' );
+		shell_exec( __DIR__ . '/tric build' );
+
+		echo colorize( "\n<light_cyan>Tric plugin path set to</light_cyan> {$current_path}\n" );
+		echo colorize( "If this is the first time setting this plugin path, be sure to <yellow>tric init <plugin></yellow>.\n\n" );
+		exit( 0 );
+		break;
 	case 'init':
 		if ( $is_help ) {
 			echo "Initializes a plugin for use in tric.\n";
@@ -107,12 +135,13 @@ switch ( $args( 'subcommand', 'help' ) ) {
 			echo light_cyan( "Using {$plugin}\n" );
 		}
 
-		$plugin_path = __DIR__ . '/_plugins/' . $plugin;
+		$plugin_root = Tribe\Test\get_plugin_root();
+		$plugin_path = $plugin_root . '/'  . $plugin;
 
 		if ( ! file_exists( $plugin_path ) ) {
-			if ( ! file_exists( __DIR__ . '/_plugins' ) ) {
+			if ( ! file_exists( $plugin_root . '/_plugins' ) ) {
 				echo light_cyan( "Creating dev/_plugins directory\n" );
-				mkdir( __DIR__ . '/_plugins' );
+				mkdir( $plugin_root . '/_plugins' );
 			}
 
 			echo colorize( "Cloning <yellow>{$plugin}</yellow>\n" );
