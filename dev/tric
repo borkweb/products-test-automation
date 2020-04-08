@@ -402,6 +402,22 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		setup_id();
 		$composer_command = $args( '...' );
 		tric_realtime()( array_merge( [ 'run', '--rm', 'composer' ], $composer_command ) );
+
+		if ( ! file_exists( Tribe\Test\tric_plugins_dir( "{$using}/common" ) ) ) {
+			break;
+		}
+
+		if ( ask( "\nWould you like to run that composer command against common?", 'yes' ) ) {
+			Tribe\Test\tric_switch_target( "{$using}/common" );
+
+			echo light_cyan( "Temporarily using " . tric_target() . "\n" );
+
+			tric_realtime()( array_merge( [ 'run', '--rm', 'composer' ], $composer_command ) );
+
+			Tribe\Test\tric_switch_target( $using );
+
+			echo light_cyan( "Using " . tric_target() ." once again\n" );
+		}
 		break;
 	case 'config':
 		if ( $is_help ) {
@@ -486,6 +502,22 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		setup_id();
 		$npm_command   = $args( '...' );
 		tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
+
+		if ( ! file_exists( Tribe\Test\tric_plugins_dir( "{$using}/common" ) ) ) {
+			break;
+		}
+
+		if ( ask( "\nWould you like to run that npm command against common?", 'yes' ) ) {
+			Tribe\Test\tric_switch_target( "{$using}/common" );
+
+			echo light_cyan( "Temporarily using " . tric_target() . "\n" );
+
+			tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
+
+			Tribe\Test\tric_switch_target( $using );
+
+			echo light_cyan( "Using " . tric_target() ." once again\n" );
+		}
 		break;
 
 	case 'restart':
