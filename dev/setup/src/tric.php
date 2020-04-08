@@ -117,37 +117,65 @@ function restart_service( $service, $pretty_name = null ) {
 }
 
 /**
+ * Returns the absolute path to the current plugins directory tric is using.
+ *
+ * @param string $path An optional path to append to the current tric plugin directory.
+ *
+ * @return string The absolute path to the current plugins directory tric is using.
+ *
+ */
+function tric_plugins_dir( $path = '' ) {
+	$plugins_dir = getenv( 'TRIC_PLUGINS_DIR' );
+	$dev_dir     = dirname( dirname( __DIR__ ) );
+
+	if ( empty( $plugins_dir ) ) {
+		// Use the default `dev/_plugins` directory in tric repository.
+		$dir = $dev_dir . '/_plugins';
+	} elseif ( is_dir( $plugins_dir ) ) {
+		// Use the specified directory.
+		$dir = $plugins_dir;
+	} else {
+		if ( 0 === strpos( $plugins_dir, '.' ) ) {
+			// Resolve the './...' paths a relative to the `dev` directory in tric repository.
+			$dir = preg_replace( '/^\\./', $dev_dir, $plugins_dir );
+		} else {
+			// Use a directory relative to the `dev` directory in tric reopository.
+			$dir = $dev_dir . '/' . ltrim( $plugins_dir, '\\/' );
+		}
+	}
+
+	return empty( $path ) ? $dir : $dir . '/' . ltrim( $path, '\\/' );
+}
+
+/**
  * Clones a company plugin in the current plugin root directory.
  *
  * @param string $plugin The plugin name, e.g. `the-events-calendar` or `event-tickets`.
  */
 function clone_plugin( $plugin ) {
-	$plugin_path = __DIR__ . '/_plugins/' . $plugin;
-	$plugin_dir  = dirname( $plugin_path );
+	$plugin_dir  = tric_plugins_dir();
+	$plugin_path = tric_plugins_dir( $plugin );
 
-	if ( ! file_exists( $plugin_path ) ) {
-		if ( ! file_exists( __DIR__ . '/_plugins' ) ) {
-			echo "Creating dev/_plugins directory...\n";
-			if ( ! mkdir( $plugin_dir ) && ! is_dir( $plugin_dir ) ) {
-				echo magenta( "Could not create {$plugin_path} directory; please check the parent directory is writeable." );
-				exit( 1 );
-			}
-		}
-
-		echo "Cloning {$plugin}...\n";
-
-		$repository = github_company_handle() . '/' . escapeshellcmd( $plugin );
-
-		$clone_status = process_realtime(
-			'git clone --recursive git@github.com:' . $repository . '.git ' . escapeshellcmd( $plugin_path )
-		);
-
-		if ( 0 !== $clone_status ) {
-			echo magenta( "Could not clone the {$repository} repository; please check your access rights to the repository." );
+	if ( ! file_exists( $plugin_dir ) ) {
+		echo "Creating the plugins directory...\n";
+		if ( ! mkdir( $plugin_dir ) && ! is_dir( $plugin_dir ) ) {
+			echo magenta( "Could not create {$plugin_dir} directory; please check the parent directory is writeable." );
 			exit( 1 );
 		}
 	}
 
+	echo "Cloning {$plugin}...\n";
+
+	$repository = github_company_handle() . '/' . escapeshellcmd( $plugin );
+
+	$clone_status = process_realtime(
+		'git clone --recursive git@github.com:' . $repository . '.git ' . escapeshellcmd( $plugin_path )
+	);
+
+	if ( 0 !== $clone_status ) {
+		echo magenta( "Could not clone the {$repository} repository; please check your access rights to the repository." );
+		exit( 1 );
+	}
 }
 
 /**
@@ -251,7 +279,7 @@ function tric_info() {
 		'WORDPRESS_HTTP_PORT',
 	];
 
-	echo "Configuration read from the following files:\n";
+	echo colorize( "<yellow>Configuration read from the following files:</yellow>\n" );
 	$tric_root = dirname( dirname( __DIR__ ) );
 	echo implode( "\n", array_filter( [
 			file_exists( $tric_root . '/.env.tric' ) ? "  - " . $tric_root . '/.env.tric' : null,
@@ -259,9 +287,14 @@ function tric_info() {
 			file_exists( $tric_root . '/.env.tric.run' ) ? "  - " . $tric_root . '/.env.tric.run' : null,
 		] ) ) . "\n\n";
 
-	echo colorize( "Current configuration:\n" );
+	echo colorize( "<yellow>Current configuration:</yellow>\n" );
 	foreach ( $config_vars as $key ) {
 		$value = print_r( getenv( $key ), true );
+
+		if ( $key === 'TRIC_PLUGINS_DIR' ) {
+			$value .= ' => ' . tric_plugins_dir();
+		}
+
 		echo colorize( "  - <light_cyan>{$key}</light_cyan>: {$value}\n" );
 	}
 }
