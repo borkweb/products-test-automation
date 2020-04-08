@@ -110,7 +110,7 @@ function restart_service( $service, $pretty_name = null ) {
 	if ( ! empty( $service_running ) ) {
 		echo colorize( "Restarting {$pretty_name} service...\n" );
 		$tric_realtime( [ 'restart', $service ] );
-		echo colorize( "<light_cyan>{$pretty_name} service restarted!</light_cyan>\n" );
+		echo colorize( "<light_cyan>{$pretty_name} service restarted.</light_cyan>\n" );
 	} else {
 		echo colorize( "{$pretty_name} service was not running.\n" );
 	}
@@ -199,4 +199,69 @@ function github_company_handle() {
 	$handle = getenv( 'TRIC_GITHUB_COMPANY_HANDLE' );
 
 	return ! empty( $handle ) ? trim( $handle ) : 'moderntribe';
+}
+
+/**
+ * Runs a process in tric stack and returns the exit status.
+ *
+ * @return \Closure The process closure to start a real-time process using tric stack.
+ */
+function tric_realtime() {
+	return docker_compose_realtime( [ '-f', stack() ] );
+}
+
+/**
+ * Returns the process Closure to start a real-time process using tric stack.
+ *
+ * @return \Closure The process closure to start a real-time process using tric stack.
+ */
+function tric_process() {
+	return docker_compose( [ '-f', stack() ] );
+}
+
+/**
+ * Tears down tric stack.
+ */
+function teardown_stack() {
+	tric_realtime()( [ 'down', '--volumes', '--remove-orphans' ] );
+}
+
+/**
+ * Rebuilds the tric stack.
+ */
+function rebuild_stack() {
+	tric_realtime()( [ 'build' ] );
+}
+
+/**
+ * Prints information about tric tool.
+ */
+function tric_info() {
+	$config_vars = [
+		'TRIC_TEST_SUBNET',
+		'CLI_VERBOSITY',
+		'TRIC_CURRENT_PROJECT',
+		'TRIC_GITHUB_COMPANY_HANDLE',
+		'TRIC_PLUGINS_DIR',
+		'XDK',
+		'XDE',
+		'XDH',
+		'XDP',
+		'MYSQL_ROOT_PASSWORD',
+		'WORDPRESS_HTTP_PORT',
+	];
+
+	echo "Configuration read from the following files:\n";
+	$tric_root = dirname( dirname( __DIR__ ) );
+	echo implode( "\n", array_filter( [
+			file_exists( $tric_root . '/.env.tric' ) ? "  - " . $tric_root . '/.env.tric' : null,
+			file_exists( $tric_root . '/.env.tric.local' ) ? "  - " . $tric_root . '/.env.tric.local' : null,
+			file_exists( $tric_root . '/.env.tric.run' ) ? "  - " . $tric_root . '/.env.tric.run' : null,
+		] ) ) . "\n\n";
+
+	echo colorize( "Current configuration:\n" );
+	foreach ( $config_vars as $key ) {
+		$value = print_r( getenv( $key ), true );
+		echo colorize( "  - <light_cyan>{$key}</light_cyan>: {$value}\n" );
+	}
 }

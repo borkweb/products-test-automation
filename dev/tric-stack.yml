@@ -66,7 +66,7 @@ services:
       # Share the WordPress core installation files in the `dev/_wordpress` directory.
       - ./_wordpress:/var/www/html
       # Share the WordPress core installation files in the `dev/_plugins` directory.
-      - ./_plugins:/plugins
+      - ${TRIC_PLUGINS_DIR}:/plugins
 
   cli:
     image: wordpress:cli
@@ -88,7 +88,7 @@ services:
       # Share the WordPress core installation files in the `dev/_wordpress` directory.
       - ./_wordpress:/var/www/html
       # Share the WordPress core installation files in the `dev/_plugins` directory.
-      - ./_plugins:/plugins
+      - ${TRIC_PLUGINS_DIR}:/plugins
 
   site_waiter:
     # Waits for the WordPress site to be available.
@@ -138,7 +138,7 @@ services:
       # Share the WordPress core installation files in the `dev/_wordpress` directory.
       - ./_wordpress:/var/www/html
       # Share the WordPress core installation files in the `dev/_plugins` directory.
-      - ./_plugins:/plugins
+      - ${TRIC_PLUGINS_DIR}:/plugins
 
   composer:
     image: lucatume/composer:php7.2
