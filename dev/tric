@@ -126,7 +126,7 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		teardown_stack();
 		rebuild_stack();
 
-		echo colorize( "\n<light_cyan>Tric plugin path set to</light_cyan> {$plugins_dir}.\n" );
+		echo colorize( "\n<light_cyan>Tric plugin path set to</light_cyan> {$plugins_dir}.\n\n" );
 		echo colorize( "If this is the first time setting this plugin path, be sure to <light_cyan>tric init <plugin></light_cyan>." );
 		break;
 	case 'init':
