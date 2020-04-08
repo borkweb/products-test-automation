@@ -100,3 +100,14 @@ function colorize( $string ) {
 
 	return $result;
 }
+
+/**
+ * Bolds a string.
+ *
+ * @param string $string The string to make bold.
+ *
+ * @return string The string with the bold style applied.
+ */
+function bold( $string ) {
+	return style( $string, 1 );
+}
