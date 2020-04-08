@@ -6,13 +6,13 @@
 namespace Tribe\Test;
 
 /**
- * Creates an .env.testing.tric if needed.
+ * Creates an `.env.testing.tric` file, if one exists it will be overwritten.
  *
  * @param string $plugin_path The plugin path.
  *
  * @return bool Whether or not the .env.testing.tric was created.
  */
-function generate_tric_env( $plugin_path ) {
+function write_tric_env_file( $plugin_path ) {
 	$mysql_root_password = getenv( 'MYSQL_ROOT_PASSWORD' );
 	$wp_http_port        = getenv( 'WORDPRESS_HTTP_PORT');
 	$plugin_env          = file_get_contents( $plugin_path . '/.env' );
@@ -35,18 +35,31 @@ function generate_tric_env( $plugin_path ) {
 	$plugin_env = preg_replace( array_keys( $strings ), $strings, $plugin_env );
 	$plugin_env .= "\n# We're using Docker to run the tests.\nUSING_CONTAINERS=1\n";
 
-	return (bool) file_put_contents( $plugin_path . '/.env.testing.tric', $plugin_env );
+	$file = $plugin_path . '/.env.testing.tric';
+	$put =  file_put_contents( $file, $plugin_env );
+
+	if ( false === $put ) {
+		echo magenta( "Could not write {$file}; please check the directory exists and is writeable.\n" );
+		exit( 1 );
+	}
 }
 
 /**
- * Creates a test_config.tric.php if needed.
+ * Creates a `test_config.tric.php` file, if one exists it will be overwritten.
  *
  * @param string $plugin_path The plugin path.
  *
  * @return bool Whether or not the test-config.php was created.
  */
-function generate_test_config( $plugin_path ) {
-	return (bool) file_put_contents( $plugin_path . '/test-config.tric.php', "<?php\ndefine( 'WP_PLUGIN_DIR', '/plugins' );" );
+function write_tric_test_config( $plugin_path ) {
+	$file = $plugin_path . '/test-config.tric.php';
+
+	$put  = file_put_contents( $file, "<?php\ndefine( 'WP_PLUGIN_DIR', '/plugins' );" );
+
+	if ( false === $put ) {
+		echo magenta( "Could not write {$file}; please check the directory exists and is writeable.\n" );
+		exit( 1 );
+	}
 }
 
 /**
@@ -56,8 +69,10 @@ function generate_test_config( $plugin_path ) {
  *
  * @return bool Whether or not the codeception.yml was created.
  */
-function maybe_generate_codeception_yml( $plugin_path ) {
-	if ( file_exists( $plugin_path . '/codeception.yml' ) ) {
+function write_codeception_config( $plugin_path ) {
+	$file = $plugin_path . '/codeception.yml';
+
+	if ( file_exists( $file ) ) {
 		return false;
 	}
 
@@ -71,5 +86,12 @@ modules:
       configFile: test-config.tric.php
 CODECEPTION;
 
-	return (bool) file_put_contents( $plugin_path . '/codeception.yml', $codeception );
+	$put =  file_put_contents( $file, $codeception );
+
+	if ( false === $put ) {
+		echo magenta( "Could not write {$file}; please check the directory exists and is writeable.\n" );
+		exit( 1 );
+	}
+
+	return true;
 }

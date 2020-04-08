@@ -443,16 +443,20 @@ function premium_plugin_versions( array $required_plugins = [], $number_versions
  *
  * The function will create the directory first, if it does not exist.
  *
- * @return string The absolute path, on the host machine, to the directory that contains the downloaded plugins.
+ * @param string $path A relative path to append to the current plugin store absolute path.
+ *
+ * @return string The absolute path, on the host machine, to the directory that contains the downloaded plugins
  */
-function plugin_store() {
+function plugin_store($path = '') {
 	$plugin_store = getcwd() . '/dev/test/_plugin_store';
 	if ( ! is_dir( $plugin_store ) && ! mkdir( $plugin_store, 0777, true ) && ! is_dir( $plugin_store ) ) {
 		printf( "\nPlugin store directory %s could not be created.", $plugin_store );
 		exit( 1 );
 	}
 
-	return $plugin_store;
+	return empty( $path )
+		? $plugin_store
+		: rtrim( $plugin_store, '\\/' ) . DIRECTORY_SEPARATOR . ltrim( $path, '\\/' );
 }
 
 /**

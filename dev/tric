@@ -15,6 +15,7 @@ require_once __DIR__ . '/setup/shell.php';
 use function Tribe\Test\args;
 use function Tribe\Test\ask;
 use function Tribe\Test\check_status_or_exit;
+use function Tribe\Test\clone_plugin;
 use function Tribe\Test\colorize;
 use function Tribe\Test\docker_compose;
 use function Tribe\Test\docker_compose_realtime;
@@ -24,6 +25,7 @@ use function Tribe\Test\red;
 use function Tribe\Test\restart_php_services;
 use function Tribe\Test\restart_service;
 use function Tribe\Test\setup_id;
+use function Tribe\Test\setup_plugin_tests;
 use function Tribe\Test\setup_tric_env;
 use function Tribe\Test\stack;
 use function Tribe\Test\tric_target;
@@ -77,6 +79,7 @@ Available commands:
 <light_cyan>build</light_cyan>        Builds the stack containers that require it, or builds a specific service image.
 <light_cyan>down</light_cyan>         Tears down the stack, stopping containers and removing volumes.
 <light_cyan>up</light_cyan>           Starts a container part of the stack.
+<light_cyan>restart</light_cyan>      Restarts a container part of the stack.
 <light_cyan>serve</light_cyan>        Starts the stack and serves it on localhost.
 
 HELP;
@@ -101,8 +104,8 @@ switch ( $args( 'subcommand', 'help' ) ) {
 			break;
 		}
 
-		$sub_args    = args( [ 'plugin' ], $args( '...' ), 0 );
-		$plugin      = $sub_args( 'plugin', false );
+		$sub_args = args( [ 'plugin' ], $args( '...' ), 0 );
+		$plugin   = $sub_args( 'plugin', false );
 
 		// If a plugin isn't passed as an argument, the target is the current plugin being used.
 		if ( empty( $plugin ) ) {
@@ -110,48 +113,8 @@ switch ( $args( 'subcommand', 'help' ) ) {
 			echo light_cyan( "Using {$plugin}\n" );
 		}
 
-		$plugin_path = __DIR__ . '/_plugins/' . $plugin;
-
-		if ( ! file_exists( $plugin_path ) ) {
-			if ( ! file_exists( __DIR__ . '/_plugins' ) ) {
-				echo light_cyan( "Creating dev/_plugins directory\n" );
-				mkdir( __DIR__ . '/_plugins' );
-			}
-
-			echo colorize( "Cloning <yellow>{$plugin}</yellow>\n" );
-
-			shell_exec( 'git clone --recursive git@github.com:moderntribe/' . escapeshellcmd( $plugin ) . '.git ' . escapeshellcmd( $plugin_path ) );
-		}
-
-		$relative_paths = [ '' ];
-		if ( file_exists( "{$plugin_path}/common" ) ) {
-			$relative_paths[] = 'common';
-		}
-
-		$skipped = false;
-		foreach ( $relative_paths as $relative_path ) {
-			$target_path = "{$plugin_path}/{$relative_path}";
-			$relative_path = empty( $relative_path ) ? '' : "{$relative_path}/";
-
-			if ( Tribe\Test\generate_test_config( $target_path ) ) {
-				echo colorize( "Created/updated <yellow>{$relative_path}test-config.tric.php</yellow> in {$plugin}\n" );
-			}
-
-			if ( Tribe\Test\generate_tric_env( $target_path ) ) {
-				echo colorize( "Created/updated <yellow>{$relative_path}.env.testing.tric</yellow> in {$plugin}\n" );
-			}
-
-			if ( Tribe\Test\maybe_generate_codeception_yml( $target_path ) ) {
-				echo colorize( "Created <yellow>{$relative_path}codeception.yml</yellow> in {$plugin}\n" );
-			} else {
-				$skipped = true;
-				echo colorize( "<magenta>Skipped creating</magenta> <yellow>{$relative_path}codeception.yml</yellow> <magenta>in {$plugin}. It already exists</magenta> (*).\n" );
-			}
-		}
-
-		if ( $skipped ) {
-			echo colorize( "\n(*) A skipped codeception.yml file could be ok. If your tests fail to run, try removing the codeception.yml and running <yellow>tric init <plugin></yellow> again.\n\n" );
-		}
+		clone_plugin( $plugin );
+		setup_plugin_tests( $plugin );
 
 		echo light_cyan( "Finished initializing {$plugin}\n" );
 		break;
@@ -508,7 +471,7 @@ switch ( $args( 'subcommand', 'help' ) ) {
 
 	case 'restart':
 		if ( $is_help ) {
-			echo "Restart a stack service.\n";
+			echo "Restarts a container part of the stack.\n";
 			echo PHP_EOL;
 			echo colorize( "usage: <light_cyan>${argv[0]} restart [...<service>]</light_cyan>\n" );
 			echo colorize( "example: <light_cyan>${argv[0]} restart</light_cyan>" );

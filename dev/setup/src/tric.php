@@ -115,3 +115,88 @@ function restart_service( $service, $pretty_name = null ) {
 		echo colorize( "{$pretty_name} service was not running.\n" );
 	}
 }
+
+/**
+ * Clones a company plugin in the current plugin root directory.
+ *
+ * @param string $plugin The plugin name, e.g. `the-events-calendar` or `event-tickets`.
+ */
+function clone_plugin( $plugin ) {
+	$plugin_path = __DIR__ . '/_plugins/' . $plugin;
+	$plugin_dir  = dirname( $plugin_path );
+
+	if ( ! file_exists( $plugin_path ) ) {
+		if ( ! file_exists( __DIR__ . '/_plugins' ) ) {
+			echo "Creating dev/_plugins directory...\n";
+			if ( ! mkdir( $plugin_dir ) && ! is_dir( $plugin_dir ) ) {
+				echo magenta( "Could not create {$plugin_path} directory; please check the parent directory is writeable." );
+				exit( 1 );
+			}
+		}
+
+		echo "Cloning {$plugin}...\n";
+
+		$repository = github_company_handle() . '/' . escapeshellcmd( $plugin );
+
+		$clone_status = process_realtime(
+			'git clone --recursive git@github.com:' . $repository . '.git ' . escapeshellcmd( $plugin_path )
+		);
+
+		if ( 0 !== $clone_status ) {
+			echo magenta( "Could not clone the {$repository} repository; please check your access rights to the repository." );
+			exit( 1 );
+		}
+	}
+
+}
+
+/**
+ * Sets up the files required to run tests in the plugin using tric stack.
+ *
+ * @param string $plugin The plugin name, e.g. 'the-events-calendar` or `event-tickets`.
+ */
+function setup_plugin_tests( $plugin ) {
+	$plugin_path = dirname( dirname( __DIR__ ) ) . '/_plugins';
+	$relative_paths = [ '' ];
+
+	if ( file_exists( "{$plugin_path}/common" ) ) {
+		$relative_paths[] = 'common';
+	}
+
+	foreach ( $relative_paths as $relative_path ) {
+		$target_path   = "{$plugin_path}/{$relative_path}";
+		$relative_path = empty( $relative_path ) ? '' : "{$relative_path}/";
+
+		write_tric_test_config( $target_path );
+		echo colorize( "Created/updated <light_cyan>{$relative_path}test-config.tric.php</light_cyan> " .
+		               "in {$plugin}.\n" );
+
+		write_tric_env_file( $target_path );
+		echo colorize( "Created/updated <light_cyan>{$relative_path}.env.testing.tric</light_cyan> " .
+		               "in {$plugin}.\n" );
+
+
+		if ( write_codeception_config( $target_path ) ) {
+			echo colorize( "Created <light_cyan>{$relative_path}codeception.yml</light_cyan> in " .
+			               "<light_cyan>{$plugin}</light_cyan>.\n" );
+		} else {
+			echo colorize( "Skipped creating <light_cyan>{$relative_path}codeception.yml</light_cyan>" .
+			               " in <light_cyan>{$plugin}</light_cyan>. It already exists (*).\n" );
+			echo colorize( "\n(*) A skipped codeception.yml file could be ok. If your tests fail to run, try removing the" .
+			               " codeception.yml and running <light_cyan>tric init <plugin></light_cyan> again.\n\n" );
+		}
+	}
+}
+
+/**
+ * Returns the handle (username) of the company to clone plugins from.
+ *
+ * Configured using the `TRIC_GITHUB_COMPANY_HANDLE` env variable.
+ *
+ * @return string The handle of the company to clone plugins from.
+ */
+function github_company_handle() {
+	$handle = getenv( 'TRIC_GITHUB_COMPANY_HANDLE' );
+
+	return ! empty( $handle ) ? trim( $handle ) : 'moderntribe';
+}
