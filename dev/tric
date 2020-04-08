@@ -12,6 +12,7 @@ require_once __DIR__ . '/setup/shell.php';
 
 
 use function Tribe\Test\args;
+use function Tribe\Test\ask;
 use function Tribe\Test\check_status_or_exit;
 use function Tribe\Test\colorize;
 use function Tribe\Test\docker_compose;
@@ -19,6 +20,8 @@ use function Tribe\Test\docker_compose_realtime;
 use function Tribe\Test\ensure_dev_plugin;
 use function Tribe\Test\light_cyan;
 use function Tribe\Test\red;
+use function Tribe\Test\restart_php_services;
+use function Tribe\Test\restart_service;
 use function Tribe\Test\setup_id;
 use function Tribe\Test\setup_tric_env;
 use function Tribe\Test\stack;
@@ -59,6 +62,7 @@ Available commands:
 	<light_cyan>logs</light_cyan>         Displays the current stack logs.
 	<light_cyan>up</light_cyan>           Starts a container part of the stack.
 	<light_cyan>down</light_cyan>         Tears down the stack, stopping containers and removing volumes.
+	<light_cyan>restart</light_cyan>      Restarts a stack service.
 	<light_cyan>build</light_cyan>        Builds the stack containers that require it, or builds a specific service image.
 	<light_cyan>config</light_cyan>       Prints the stack configuration as interpolated from the environment.
 	<light_cyan>reset</light_cyan>        Resets {$cli_name} to the initial state as configured by the env files.
@@ -299,10 +303,28 @@ switch ( $args( 'subcommand', 'help' ) ) {
 			break;
 		}
 
-		$value = 'on' === $toggle ? '1' : '0';
-		write_env_file( $run_settings_file, [ 'XDE' => $value ], true );
+		$value = 'on' === $toggle ? 1 : 0;
 		echo 'XDebug status: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
-		echo PHP_EOL . PHP_EOL . colorize( "Tear down the stack with <light_cyan>down</light_cyan> and restar it to apply the new settings!\n" );
+
+		if ( $value === (int) getenv( 'XDE' ) ) {
+			break;
+		}
+
+		write_env_file( $run_settings_file, [ 'XDE' => $value ], true );
+
+		echo "\n\n";
+
+		$restart_services = ask(
+			'Would you like to restart the WordPress (NOT the database) and Codeception services now?',
+			'yes'
+		);
+		if ( $restart_services ) {
+			restart_php_services();
+		} else {
+			echo colorize(
+				"\n\nTear down the stack with <light_cyan>down</light_cyan> and restar it to apply the new settings!\n"
+			);
+		}
 		break;
 	case 'composer':
 		if ( $is_help ) {
@@ -408,6 +430,21 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		$npm_command   = $args( '...' );
 		$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
 		$tric_realtime( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
+		break;
+
+	case 'restart':
+		if ( $is_help ) {
+			echo "Restart a stack service.\n";
+			echo PHP_EOL;
+			echo colorize( "usage: <light_cyan>${argv[0]} restart [...<service>]</light_cyan>\n" );
+			echo colorize( "example: <light_cyan>${argv[0]} restart</light_cyan>" );
+			echo colorize( "example: <light_cyan>${argv[0]} restart wordpress</light_cyan>" );
+			break;
+		}
+
+		setup_id();
+		$service = args( [ 'service' ], $args( '...' ), 0 )( 'service', 'wordpress' );
+		restart_service( $service );
 		break;
 }
 
