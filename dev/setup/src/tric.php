@@ -164,6 +164,11 @@ function clone_plugin( $plugin ) {
 		}
 	}
 
+	// If the plugin path already exists, don't bother cloning.
+	if ( file_exists( $plugin_path ) ) {
+		return;
+	}
+
 	echo "Cloning {$plugin}...\n";
 
 	$repository = github_company_handle() . '/' . escapeshellcmd( $plugin );
@@ -184,7 +189,7 @@ function clone_plugin( $plugin ) {
  * @param string $plugin The plugin name, e.g. 'the-events-calendar` or `event-tickets`.
  */
 function setup_plugin_tests( $plugin ) {
-	$plugin_path = dirname( dirname( __DIR__ ) ) . '/_plugins';
+	$plugin_path    = tric_plugins_dir() . '/' . $plugin;
 	$relative_paths = [ '' ];
 
 	if ( file_exists( "{$plugin_path}/common" ) ) {
