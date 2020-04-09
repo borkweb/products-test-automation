@@ -20,8 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Start SSH-Agent
-        uses: webfactory/ssh-agent@v0.2.0
+      - name: Start ssh-agent
+        run: |
+          - mkdir -p "${HOME}/.ssh"
+          - ssh-agent -a /tmp/ssh_agent.sock
+
+      - name: Export SSH_AUTH_SOCk env var
+        run: echo "::set-env name=SSH_AUTH_SOCK::/tmp/ssh_agent.sock"
 
       - name: Pull latest WordPress container version
         run: docker pull wordpress:latest
