@@ -17,12 +17,12 @@ function ensure_dev_plugin( $target ) {
 	}, $targets ) );
 
 	if ( false === $target ) {
-		echo red( "This command needs a target argument; available targets are:\n${targets_str}\n" );
+		echo magenta( "This command needs a target argument; available targets are:\n${targets_str}\n" );
 		exit( 1 );
 	}
 
 	if ( ! in_array( $target, $targets, true ) ) {
-		echo red( "'{$target}' is not a valid target; available targets are:\n${targets_str}\n" );
+		echo magenta( "'{$target}' is not a valid target; available targets are:\n${targets_str}\n" );
 		exit( 1 );
 	}
 }
@@ -67,7 +67,7 @@ function tric_target( $require = true ) {
 		return $using;
 	}
 	if ( empty( $using ) ) {
-		echo red( "Use target not set; use the 'use' sub-command to set it.\n" );
+		echo magenta( "Use target not set; use the 'use' sub-command to set it.\n" );
 		exit( 1 );
 	}
 
@@ -126,7 +126,7 @@ function restart_service( $service, $pretty_name = null ) {
  */
 function tric_plugins_dir( $path = '' ) {
 	$plugins_dir = getenv( 'TRIC_PLUGINS_DIR' );
-	$dev_dir     = dirname( dirname( __DIR__ ) );
+	$dev_dir     = dev();
 
 	if ( empty( $plugins_dir ) ) {
 		// Use the default `dev/_plugins` directory in tric repository.
@@ -296,10 +296,126 @@ function tric_info() {
 	foreach ( $config_vars as $key ) {
 		$value = print_r( getenv( $key ), true );
 
-		if ( $key === 'TRIC_PLUGINS_DIR' ) {
+		if ( $key === 'TRIC_PLUGINS_DIR' && $value !== tric_plugins_dir() ) {
+			// If the configuration is using a relative path, then expose the absolute path.
 			$value .= ' => ' . tric_plugins_dir();
 		}
 
 		echo colorize( "  - <light_cyan>{$key}</light_cyan>: {$value}\n" );
+	}
+}
+
+/**
+ * Returns the absolute path to the WordPress Core directory currently used by tric.
+ *
+ * The function will not check for the directory existence as we might be using this function to get a path to create.
+ *
+ * @param string $path An optional, relative, path to append to the WordPress Core directory absolute path.
+ *
+ * @return string The absolute path to the WordPress Core directory currently used by tric.
+ */
+function tric_wp_dir( $path = '' ) {
+	$default = dev( '/_wordpress' );
+
+	$wp_dir = getenv( 'TRIC_WP_DIR' );
+
+	if ( ! empty( $wp_dir ) ) {
+		if ( ! is_dir( $wp_dir ) ) {
+			// Relative path, resolve from `dev`.
+			$wp_dir = dev( ltrim( preg_replace( '^\\./', '', $wp_dir ), '\\/' ) );
+		}
+	} else {
+		$wp_dir = $default;
+	}
+
+	return empty( $path ) ? $wp_dir : $wp_dir . '/' . ltrim( $path, '\\/' );
+}
+
+/**
+ * Prints the current XDebug status to screen.
+ */
+function xdebug_status() {
+	$value = getenv( 'XDE' );
+	echo 'XDebug status is: ' . ( $value ? light_cyan( 'on' ) : magenta( 'off' ) ) . PHP_EOL;
+	echo 'Remote host: ' . light_cyan( getenv( 'XDH' ) ) . PHP_EOL;
+	echo 'Remote port: ' . light_cyan( getenv( 'XDP' ) ) . PHP_EOL;
+	echo 'WordPress IDE Key: ' . light_cyan( getenv( 'XDK' ) ) . PHP_EOL;
+	echo 'Codeception IDE Key: ' . light_cyan( getenv( 'XDK' ) . '_cc' ) . PHP_EOL;
+	echo colorize( PHP_EOL . "You can override these values in the <light_cyan>.env.tric.local" .
+	               "</light_cyan> file or by using the " .
+	               "<light_cyan>'xdebug (host|key|port) <value>'</light_cyan> command." ) . PHP_EOL;
+	echo PHP_EOL . ( 'Ensure the following path mappings are set (host path => container path) in your IDE:' ) . PHP_EOL . PHP_EOL;
+	echo colorize( "  - <light_cyan>" . tric_plugins_dir() . "</light_cyan> => <light_cyan>/plugins</light_cyan>" ) . PHP_EOL;
+	echo colorize( "  - <light_cyan>" . tric_wp_dir() . "</light_cyan> => <light_cyan>/var/www/html</light_cyan>" );
+
+	$default_mask = ( tric_wp_dir() === dev( '/_wordpress' ) ) + 2 * ( tric_plugins_dir() === dev( '/_plugins' ) );
+
+	switch ( $default_mask ) {
+		case 1:
+			echo PHP_EOL . PHP_EOL;
+			echo yellow( 'Note: tric is using the default WordPress directory and a different plugins directory: ' .
+			             'set path mappings correctly and keep that in mind.' );
+			break;
+		case 2:
+			echo PHP_EOL . PHP_EOL;
+			echo yellow( 'Note: tric is using the default plugins directory and a different WordPress directory: ' .
+			             'set path mappings correctly and keep that in mind.' );
+			break;
+		case 3;
+		default:
+			break;
+	}
+}
+
+/**
+ * Handles the XDebug command request.
+ *
+ * @param callable $args The closure that will produce the current XDebug request arguments.
+ */
+function tric_handle_xdebug( callable $args ) {
+	$run_settings_file = dev( '/.env.tric.run' );
+	$toggle            = $args( 'toggle', 'on' );
+
+	if ( 'status' === $toggle ) {
+		xdebug_status();
+
+		return;
+	}
+
+	$map = [
+		'host' => 'XDH',
+		'key'  => 'XDK',
+		'port' => 'XDP',
+	];
+	if ( array_key_exists( $toggle, $map ) ) {
+		$var = $args( 'value' );
+		echo colorize( "Setting <light_cyan>{$map[$toggle]}={$var}</light_cyan>" ) . PHP_EOL . PHP_EOL;
+		write_env_file( $run_settings_file, [ $map[ $toggle ] => $var ] );
+		echo PHP_EOL . PHP_EOL . colorize( "Tear down the stack with <light_cyan>down</light_cyan> and restar it to apply the new settings!\n" );
+
+		return;
+	}
+
+	$value = 'on' === $toggle ? 1 : 0;
+	echo 'XDebug status: ' . ( $value ? light_cyan( 'on' ) : magenta( 'off' ) );
+
+	if ( $value === (int) getenv( 'XDE' ) ) {
+		return;
+	}
+
+	write_env_file( $run_settings_file, [ 'XDE' => $value ], true );
+
+	echo "\n\n";
+
+	$restart_services = ask(
+		'Would you like to restart the WordPress (NOT the database) and Codeception services now?',
+		'yes'
+	);
+	if ( $restart_services ) {
+		restart_php_services();
+	} else {
+		echo colorize(
+			"\n\nTear down the stack with <light_cyan>down</light_cyan> and restar it to apply the new settings!\n"
+		);
 	}
 }

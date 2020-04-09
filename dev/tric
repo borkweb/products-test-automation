@@ -13,20 +13,20 @@ require_once __DIR__ . '/setup/shell.php';
 
 
 use function Tribe\Test\args;
-use function Tribe\Test\ask;
 use function Tribe\Test\check_status_or_exit;
 use function Tribe\Test\clone_plugin;
 use function Tribe\Test\colorize;
+use function Tribe\Test\dev;
 use function Tribe\Test\ensure_dev_plugin;
 use function Tribe\Test\light_cyan;
+use function Tribe\Test\magenta;
 use function Tribe\Test\rebuild_stack;
-use function Tribe\Test\red;
-use function Tribe\Test\restart_php_services;
 use function Tribe\Test\restart_service;
 use function Tribe\Test\setup_id;
 use function Tribe\Test\setup_plugin_tests;
 use function Tribe\Test\setup_tric_env;
 use function Tribe\Test\teardown_stack;
+use function Tribe\Test\tric_handle_xdebug;
 use function Tribe\Test\tric_info;
 use function Tribe\Test\tric_process;
 use function Tribe\Test\tric_realtime;
@@ -92,7 +92,7 @@ $help_message = colorize( $help_message_template );
 
 $is_help = args( [ 'help' ], $args( '...' ), 0 )( 'help', false ) === 'help';
 
-$run_settings_file = __DIR__ . '/.env.tric.run';
+$run_settings_file = dev( '/.env.tric.run' );
 
 switch ( $args( 'subcommand', 'help' ) ) {
 	default:
@@ -124,7 +124,6 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		write_env_file( $run_settings_file, [ 'TRIC_PLUGINS_DIR' => $plugins_dir ], true );
 
 		teardown_stack();
-		rebuild_stack();
 
 		echo colorize( "\n<light_cyan>Tric plugin path set to</light_cyan> {$plugins_dir}.\n\n" );
 		echo colorize( "If this is the first time setting this plugin path, be sure to <light_cyan>tric init <plugin></light_cyan>." );
@@ -256,7 +255,7 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		check_status_or_exit( $tric( [ 'up', '-d', 'wordpress' ] ) );
 		check_status_or_exit(
 			$tric( [ 'run', '--rm', 'site_waiter' ] ),
-			red( "WordPress site is not available at http://localhost:" . $port
+			magenta( "WordPress site is not available at http://localhost:" . $port
 			     . "; please check the container health." )
 		);
 		echo light_cyan( "WordPress site up and running at http://localhost:{$port}\n" );
@@ -308,7 +307,7 @@ switch ( $args( 'subcommand', 'help' ) ) {
 
 		$using = tric_target();
 		if ( empty( $using ) ) {
-			echo red( "Currently not using any target, commands requiring a target will fail.\n" );
+			echo magenta( "Currently not using any target, commands requiring a target will fail.\n" );
 			break;
 		}
 		echo light_cyan( "Using {$using}\n" );
@@ -327,64 +326,9 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		}
 
 		$xdebug_args = args( [ 'toggle', 'value' ], $args( '...' ), 0 );
-		$toggle      = $xdebug_args( 'toggle', 'on' );
 
-		$xdebug_status = static function () {
-			$value = getenv( 'XDE' );
-			echo 'XDebug status is: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) ) . PHP_EOL;
-			echo 'Remote host: ' . light_cyan( getenv( 'XDH' ) ) . PHP_EOL;
-			echo 'Remote port: ' . light_cyan( getenv( 'XDP' ) ) . PHP_EOL;
-			echo 'WordPress IDE Key: ' . light_cyan( getenv( 'XDK' ) ) . PHP_EOL;
-			echo 'Codeception IDE Key: ' . light_cyan( getenv( 'XDK' ) . '_cc' ) . PHP_EOL;
-			echo colorize( PHP_EOL . "You can override these values in the <light_cyan>.env.tric.local" .
-			               "</light_cyan> file or by using the " .
-			               "<light_cyan>'xdebug (host|key|port) <value>'</light_cyan> command." ) . PHP_EOL;
-			echo PHP_EOL . ( 'Ensure the following path mappings are set (host path => container path) in your IDE:' ) . PHP_EOL;
-			echo PHP_EOL . ( 'For the WordPress files:' ) . PHP_EOL;
-			echo colorize( "  - <light_cyan>dev/_plugins</light_cyan> => <light_cyan>/plugins</light_cyan>" ) . PHP_EOL;
-			echo colorize( "  - <light_cyan>dev/_wordpress</light_cyan> => <light_cyan>/var/www/html</light_cyan>" );
-		};
+		tric_handle_xdebug( $xdebug_args );
 
-		if ( 'status' === $toggle ) {
-			$xdebug_status();
-			break;
-		}
-
-		$map = [
-			'host' => 'XDH',
-			'key'  => 'XDK',
-			'port' => 'XDP',
-		];
-		if ( array_key_exists( $toggle, $map ) ) {
-			$var = $xdebug_args( 'value' );
-			echo colorize( "Setting <light_cyan>{$map[$toggle]}={$var}</light_cyan>" ) . PHP_EOL . PHP_EOL;
-			write_env_file( $run_settings_file, [ $map[ $toggle ] => $var ] );
-			echo PHP_EOL . PHP_EOL . colorize( "Tear down the stack with <light_cyan>down</light_cyan> and restar it to apply the new settings!\n" );
-			break;
-		}
-
-		$value = 'on' === $toggle ? 1 : 0;
-		echo 'XDebug status: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
-
-		if ( $value === (int) getenv( 'XDE' ) ) {
-			break;
-		}
-
-		write_env_file( $run_settings_file, [ 'XDE' => $value ], true );
-
-		echo "\n\n";
-
-		$restart_services = ask(
-			'Would you like to restart the WordPress (NOT the database) and Codeception services now?',
-			'yes'
-		);
-		if ( $restart_services ) {
-			restart_php_services();
-		} else {
-			echo colorize(
-				"\n\nTear down the stack with <light_cyan>down</light_cyan> and restar it to apply the new settings!\n"
-			);
-		}
 		break;
 	case 'composer':
 		if ( $is_help ) {
@@ -431,7 +375,7 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		$removed = unlink( $run_settings_file );
 
 		if ( false === $removed ) {
-			echo red( "Could not remove the {$run_settings_file} file; remove it manually.\n" );
+			echo magenta( "Could not remove the {$run_settings_file} file; remove it manually.\n" );
 			exit( 1 );
 		}
 
@@ -451,12 +395,12 @@ switch ( $args( 'subcommand', 'help' ) ) {
 		$toggle = args( [ 'toggle' ], $args( '...' ), 0 )( 'toggle', 'status' );
 		if ( 'status' === $toggle ) {
 			$value = getenv( 'XDE' );
-			echo 'Debug status is: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
+			echo 'Debug status is: ' . ( $value ? light_cyan( 'on' ) : magenta( 'off' ) );
 			break;
 		}
 		$value = 'on' === $toggle ? '1' : '0';
 		write_env_file( $run_settings_file, [ 'CLI_VERBOSITY' => $value ], true );
-		echo 'Debug status: ' . ( $value ? light_cyan( 'on' ) : red( 'off' ) );
+		echo 'Debug status: ' . ( $value ? light_cyan( 'on' ) : magenta( 'off' ) );
 		break;
 	case 'up':
 		if ( $is_help ) {
