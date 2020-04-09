@@ -22,8 +22,8 @@ jobs:
 
       - name: Start ssh-agent
         run: |
-          - mkdir -p "${HOME}/.ssh"
-          - ssh-agent -a /tmp/ssh_agent.sock
+          mkdir -p "${HOME}/.ssh";
+          ssh-agent -a /tmp/ssh_agent.sock;
 
       - name: Export SSH_AUTH_SOCk env var
         run: echo "::set-env name=SSH_AUTH_SOCK::/tmp/ssh_agent.sock"
