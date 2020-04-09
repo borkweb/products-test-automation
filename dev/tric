@@ -31,6 +31,7 @@ use function Tribe\Test\tric_info;
 use function Tribe\Test\tric_process;
 use function Tribe\Test\tric_realtime;
 use function Tribe\Test\tric_target;
+use function Tribe\Test\update_stack_images;
 use function Tribe\Test\write_env_file;
 
 // Set up the argument parsing function.
@@ -71,6 +72,7 @@ Available commands:
 <light_cyan>shell</light_cyan>        Opens a shell in a stack service, defaults to the 'codeception' one.
 <light_cyan>cli</light_cyan>          Runs a wp-cli command in the stack.
 <light_cyan>reset</light_cyan>        Resets {$cli_name} to the initial state as configured by the env files.
+<light_cyan>update</light_cyan>       Updates the tool and the images used in its services.
 
 <yellow>Info:</yellow>
 <light_cyan>config</light_cyan>       Prints the stack configuration as interpolated from the environment.
@@ -538,6 +540,19 @@ switch ( $args( 'subcommand', 'help' ) ) {
 	case 'info':
 		setup_id();
 		tric_info();
+		break;
+
+	case 'update':
+		if ( $is_help ) {
+			echo "Updates the tool and the images used in its services.\n";
+			echo PHP_EOL;
+			echo colorize( "usage: <light_cyan>${argv[0]} update</light_cyan>\n" );
+			break;
+		}
+
+		rebuild_stack();
+		update_stack_images();
+
 		break;
 }
 
