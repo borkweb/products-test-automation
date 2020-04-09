@@ -75,6 +75,20 @@ function tric_target( $require = true ) {
 }
 
 /**
+ * Switches the current `use` target.
+ *
+ * @param string $target Target to switch to.
+ */
+function tric_switch_target( $target ) {
+	$root              = dirname( dirname( __DIR__ ) );
+	$run_settings_file = "{$root}/.env.tric.run";
+
+	write_env_file( $run_settings_file, [ 'TRIC_CURRENT_PROJECT' => $target ], true );
+
+	setup_tric_env( $root );
+}
+
+/**
  * Returns a map of the stack PHP services that relates the service to its pretty name.
  *
  * @return array<string,string> A map of the stack PHP services relating each service to its pretty name.

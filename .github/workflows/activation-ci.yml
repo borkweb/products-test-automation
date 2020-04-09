@@ -20,6 +20,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Start ssh-agent
+        run: |
+          mkdir -p "${HOME}/.ssh";
+          ssh-agent -a /tmp/ssh_agent.sock;
+
+      - name: Export SSH_AUTH_SOCK env var
+        run: echo "::set-env name=SSH_AUTH_SOCK::/tmp/ssh_agent.sock"
+
       - name: Pull latest WordPress container version
         run: docker pull wordpress:latest
 
