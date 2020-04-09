@@ -40,6 +40,7 @@ services:
       # The port, in the container, is not the default `80` to allow non root users to bind (listen) to it.
       - "${WORDPRESS_HTTP_PORT:-8888}:80"
     environment:
+      FIXUID: "${FIXUID:-1}"
       WORDPRESS_DB_USER: root
       WORDPRESS_DB_PASSWORD: password
       # This db is created by the db container at startup, no need to create it.
@@ -74,6 +75,7 @@ services:
     networks:
       - tric
     environment:
+      FIXUID: "${FIXUID:-1}"
       # Configure this to debug the tests with XDebug.
       # Map the `dev/_wordpress` directory to `/var/www/html' directory in your IDE of choice.
       # Map the `dev/_plugins` directory to `/plugins' directory in your IDE of choice.
@@ -113,6 +115,7 @@ services:
     extra_hosts:
       - "wordpress.test:172.${TRIC_TEST_SUBNET:-28}.1.1"
     environment:
+      FIXUID: "${FIXUID:-1}"
       # Set these values to allow the container to look wordpress up.
       WORDPRESS_DB_USER: root
       WORDPRESS_DB_PASSWORD: password
@@ -143,6 +146,8 @@ services:
   composer:
     image: lucatume/composer:php7.2
     user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
+    environment:
+      FIXUID: "${FIXUID:-1}"
     volumes:
       # Set the current plugin as project.
       - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
@@ -154,6 +159,8 @@ services:
       context: test/_containers/npm
     image: tric_npm
     user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
+    environment:
+      FIXUID: "${FIXUID:-1}"
     volumes:
       # Set the current plugin as project.
       - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project

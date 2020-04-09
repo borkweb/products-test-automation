@@ -36,6 +36,11 @@ function setup_tric_env( $root_dir ) {
 	// Set the current run context.
 	putenv( 'TRIBE_TRIC=1' );
 
+	if ( ! os() !== 'Linux' ) {
+		// Do not fix file modes on non-linux hosts.
+		putenv( 'FIXUID=0' );
+	}
+
 	// Load the distribution version configuration file, the version-controlled one.
 	load_env_file( $root_dir . '/.env.tric' );
 
@@ -263,7 +268,9 @@ function teardown_stack() {
  * Rebuilds the tric stack.
  */
 function rebuild_stack() {
+	echo "Building the stack images...\n\n";
 	tric_realtime()( [ 'build' ] );
+	echo light_cyan( "\nStack images built.\n\n" );
 }
 
 /**
@@ -302,4 +309,13 @@ function tric_info() {
 
 		echo colorize( "  - <light_cyan>{$key}</light_cyan>: {$value}\n" );
 	}
+}
+
+/**
+ * Updates the stack images by pulling the latest version of each.
+ */
+function update_stack_images() {
+	echo "Updating the stack images...\n\n";
+	tric_realtime()( [ 'pull', '--include-deps' ] );
+	echo light_cyan( "\n\nStack images updated.\n" );
 }
