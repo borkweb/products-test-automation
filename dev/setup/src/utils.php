@@ -482,3 +482,16 @@ function ask( $question, $default = null ) {
 
 	return '' === $value ? $default : $value;
 }
+
+/**
+ * Returns the absolute path to the `dev` directory.
+ *
+ * @param string $path An optional, relative path to append to the dev directory absolute path.
+ *
+ * @return string The absolute path to the `dev` directory.
+ */
+function dev_dir( $path = '' ) {
+	$dev = dirname( dirname( __DIR__ ) );
+
+	return empty( $path ) ? $dev : $dev . '/' . ltrim( $path, '\\/' );
+}
