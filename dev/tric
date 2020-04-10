@@ -13,6 +13,7 @@ require_once __DIR__ . '/setup/shell.php';
 
 
 use function Tribe\Test\args;
+use function Tribe\Test\ask;
 use function Tribe\Test\check_status_or_exit;
 use function Tribe\Test\clone_plugin;
 use function Tribe\Test\colorize;
