@@ -159,8 +159,6 @@ services:
       context: test/_containers/npm
     image: tric_npm
     user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
-    environment:
-      FIXUID: "${FIXUID:-1}"
     volumes:
       # Set the current plugin as project.
       - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
