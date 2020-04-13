@@ -37,7 +37,7 @@ function setup_tric_env( $root_dir ) {
 	putenv( 'TRIBE_TRIC=1' );
 
 	$os = os();
-	if ( ! $os === 'macOS' || $os === 'Windows' ) {
+	if ( $os === 'macOS' || $os === 'Windows' ) {
 		// Do not fix file modes on hosts that implement user ID and group ID remapping at the Docker daemon level.
 		putenv( 'FIXUID=0' );
 	}
