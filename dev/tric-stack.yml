@@ -150,7 +150,7 @@ services:
       FIXUID: "${FIXUID:-1}"
     volumes:
       # Set the current plugin as project.
-      - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
+      - ${TRIC_PLUGINS_DIR:-./_plugins}/${TRIC_CURRENT_PROJECT:-test}:/project
       # Share SSH keys with the container to pull from private repositories.
       - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent
 
@@ -163,7 +163,7 @@ services:
       FIXUID: ${FIXUID:-1}
     volumes:
       # Set the current plugin as project.
-      - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
+      - ${TRIC_PLUGINS_DIR:-./_plugins}/${TRIC_CURRENT_PROJECT:-test}:/project
       # Share SSH keys with the container to pull from private repositories.
       - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent
 
