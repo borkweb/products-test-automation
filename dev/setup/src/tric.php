@@ -33,11 +33,12 @@ function ensure_dev_plugin( $target ) {
  * @param string $root_dir The cli tool root directory.
  */
 function setup_tric_env( $root_dir ) {
-	// Set the current run context.
+	// Let's declare we're performing trics.
 	putenv( 'TRIBE_TRIC=1' );
 
-	if ( ! os() !== 'Linux' ) {
-		// Do not fix file modes on non-linux hosts.
+	$os = os();
+	if ( ! $os === 'macOS' || $os === 'Windows' ) {
+		// Do not fix file modes on hosts that implement user ID and group ID remapping at the Docker daemon level.
 		putenv( 'FIXUID=0' );
 	}
 
@@ -440,7 +441,7 @@ function tric_handle_xdebug( callable $args ) {
 		);
 	}
 }
-  
+
 /**
  * Updates the stack images by pulling the latest version of each.
  */

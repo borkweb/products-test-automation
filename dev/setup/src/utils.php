@@ -212,7 +212,12 @@ function gid() {
 /**
  * Sets up the user id and group in the environment.
  *
- * @param bool $reset Whether to refetch and reset the user id and group or not.
+ * On OSes that will handle user ID and group ID mapping at the Docker daemon level, macOS and Windows, the
+ * `DOCKER_RUN_UID` and `DOCKER_RUN_GID` env variables will be set to empty strings.
+ * This, in turn, will fill the `user` parameter of the stack services to `user: ":"` that will prompt docker-compose
+ * to not set the user at all, the wanted behavior on such OSes.
+ *
+ * @param bool $reset Whether to re-fetch and reset the user id and group or not.
  */
 function setup_id( $reset = false ) {
 	if (
@@ -222,8 +227,18 @@ function setup_id( $reset = false ) {
 	) {
 		return;
 	}
-	putenv( 'DOCKER_RUN_UID=' . uid() );
-	putenv( 'DOCKER_RUN_GID=' . gid() );
+
+	$os = os();
+	if ( 'Windows' === $os || 'macOS' === $os ) {
+		// Leave the value empty to allow the vm user-mapping to kick in.
+		putenv( 'DOCKER_RUN_UID=' );
+		putenv( 'DOCKER_RUN_GID=' );
+	} else {
+		// On other systems explicitly set the values.
+		putenv( 'DOCKER_RUN_UID=' . uid() );
+		putenv( 'DOCKER_RUN_GID=' . gid() );
+	}
+
 	putenv( 'DOCKER_RUN_SSH_AUTH_SOCK=' . ssh_auth_sock() );
 }
 
@@ -294,13 +309,13 @@ function the_fatality() {
 function host_ip( $os = 'Linux' ) {
 	switch ( $os ) {
 		case 'Linux':
-			$command = "$(ip route | grep docker0 | awk '{print $9}')";
-			exec( $command, $host_ip_output, $host_ip_status );
-			if ( 0 !== (int) $host_ip_status ) {
-				echo "<red>Cannot get the host machine IP address using '${command}'" .
-				     $host_ip = false;
+			$command = "ip route | grep docker0 | cut -f9 -d' '";
+			exec( $command, $output, $status );
+			if ( 0 !== (int) $status ) {
+				echo magenta( "Cannot get the host machine IP address using '${command}'\n" );
+				exit( 1 );
 			}
-			$host_ip = $host_ip_output[0];
+			$host_ip = trim( $output[0] );
 			break;
 		default:
 			$host_ip = 'host.docker.internal';
