@@ -154,7 +154,10 @@ function docker_compose_realtime( array $options = [] ) {
 
 	$host_ip = false;
 	if ( ! $is_ci && 'Linux' === os() ) {
-		$options = array_merge( [ '-f', stack( '-linux-override' ) ], $options );
+		$linux_override = stack( '-linux-override' );
+		if ( file_exists( $linux_override ) ) {
+			$options = array_merge( [ '-f', $linux_override ], $options );
+		}
 		// If we're running on Linux, then try to fetch the host machine IP using a command.
 		$host_ip = host_ip( 'Linux' );
 	}
