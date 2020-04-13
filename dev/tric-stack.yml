@@ -29,7 +29,7 @@ services:
       - db
     # Run the container as the host user and group.
     # Apache will run as the same user and permission issues with WordPress generated files should not arise.
-    user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
+    user: "${DOCKER_RUN_UID:-}:${DOCKER_RUN_GID:-}"
     sysctls:
       # Allow any user to bind ports <= 1024.
       # This is required as we're running the container as the host user and that user might not be in the root
@@ -48,11 +48,11 @@ services:
       WORDPRESS_DB_HOST: db
       # Pull plugins from the `/plugins` directory to allow debugging the files we're working on.
       WORDPRESS_CONFIG_EXTRA: |
-        define( 'WP_PLUGIN_DIR', '/plugins' );
         $$scheme = empty( $$_SERVER['HTTPS'] ) ? 'http' : 'https';
         $$url    = isset( $$_SERVER['HTTP_HOST'] ) ? $$_SERVER['HTTP_HOST'] : 'wordpress.test';
         define( 'WP_HOME', $$scheme . '://' . $$url );
         define( 'WP_SITEURL', $$scheme . '://' . $$url );
+        define( 'WP_PLUGIN_DIR', '/plugins' );
       # Configure this to debug the tests with XDebug.
       # Map the `dev/_wordpress` directory to `/var/www/html' directory in your IDE of choice.
       # Map the `dev/_plugins` directory to `/plugins` directory in your IDE of choice.
@@ -71,7 +71,7 @@ services:
 
   cli:
     image: wordpress:cli
-    user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
+    user: "${DOCKER_RUN_UID:-}:${DOCKER_RUN_GID:-}"
     networks:
       - tric
     environment:
@@ -145,12 +145,12 @@ services:
 
   composer:
     image: lucatume/composer:php7.2
-    user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
+    user: "${DOCKER_RUN_UID:-}:${DOCKER_RUN_GID:-}"
     environment:
       FIXUID: "${FIXUID:-1}"
     volumes:
       # Set the current plugin as project.
-      - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
+      - ${TRIC_PLUGINS_DIR:-./_plugins}/${TRIC_CURRENT_PROJECT:-test}:/project
       # Share SSH keys with the container to pull from private repositories.
       - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent
 
@@ -158,10 +158,12 @@ services:
     build:
       context: test/_containers/npm
     image: tric_npm
-    user: "${DOCKER_RUN_UID:-0}:${DOCKER_RUN_GID:-0}"
+    user: "${DOCKER_RUN_UID:-}:${DOCKER_RUN_GID:-}"
+    environment:
+      FIXUID: ${FIXUID:-1}
     volumes:
       # Set the current plugin as project.
-      - ./_plugins/${TRIC_CURRENT_PROJECT:-test}:/project
+      - ${TRIC_PLUGINS_DIR:-./_plugins}/${TRIC_CURRENT_PROJECT:-test}:/project
       # Share SSH keys with the container to pull from private repositories.
       - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent
 

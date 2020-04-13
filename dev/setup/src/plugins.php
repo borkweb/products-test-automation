@@ -480,9 +480,14 @@ function plugin_nightly_builds( callable $args ) {
  *                                   information.
  */
 function dev_plugins() {
+	$plugin_path     = tric_plugins_dir();
+
+	if ( ! is_dir( $plugin_path ) ) {
+		return [];
+	}
+
 	$dev_plugins     = [];
 	$options         = FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS;
-	$plugin_path     = tric_plugins_dir();
 
 	$dev_plugins_dir = new CallbackFilterIterator( new FilesystemIterator( $plugin_path, $options ),
 		static function ( SplFileInfo $file ) {
