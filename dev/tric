@@ -13,27 +13,10 @@ require_once __DIR__ . '/setup/shell.php';
 
 
 use function Tribe\Test\args;
-use function Tribe\Test\ask;
-use function Tribe\Test\check_status_or_exit;
-use function Tribe\Test\clone_plugin;
 use function Tribe\Test\colorize;
 use function Tribe\Test\dev;
-use function Tribe\Test\ensure_dev_plugin;
 use function Tribe\Test\light_cyan;
-use function Tribe\Test\magenta;
-use function Tribe\Test\rebuild_stack;
-use function Tribe\Test\restart_service;
-use function Tribe\Test\setup_id;
-use function Tribe\Test\setup_plugin_tests;
 use function Tribe\Test\setup_tric_env;
-use function Tribe\Test\teardown_stack;
-use function Tribe\Test\tric_handle_xdebug;
-use function Tribe\Test\tric_info;
-use function Tribe\Test\tric_process;
-use function Tribe\Test\tric_realtime;
-use function Tribe\Test\tric_target;
-use function Tribe\Test\update_stack_images;
-use function Tribe\Test\write_env_file;
 
 // Set up the argument parsing function.
 $args = args( [
