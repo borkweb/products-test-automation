@@ -220,9 +220,10 @@ function setup_plugin_tests( $plugin ) {
 		$target_path   = "{$plugin_path}/{$relative_path}";
 		$relative_path = empty( $relative_path ) ? '' : "{$relative_path}/";
 
-		write_tric_test_config( $target_path );
-		echo colorize( "Created/updated <light_cyan>{$relative_path}test-config.tric.php</light_cyan> " .
-		               "in {$plugin}.\n" );
+		if ( write_tric_test_config( $target_path ) ) {
+			echo colorize( "Created/updated <light_cyan>{$relative_path}test-config.tric.php</light_cyan> " .
+			               "in {$plugin}.\n" );
+		}
 
 		write_tric_env_file( $target_path );
 		echo colorize( "Created/updated <light_cyan>{$relative_path}.env.testing.tric</light_cyan> " .

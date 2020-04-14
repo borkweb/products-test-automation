@@ -45,21 +45,49 @@ function write_tric_env_file( $plugin_path ) {
 }
 
 /**
+ * Returns the lines that should be written to a `tests-config.php` file for tric to work correclty.
+ *
+ * @param array<string,string> $overrides A map of lines to write, where the key is the type of entry and the value are
+ *                                        the lines to write for that entry.
+ *                                        E.g. `[ 'define_plugins_dir' => "define( 'WP_PLUGIN_DIR', '/plugins' );" ]`.
+ *
+ * @return array<string,string> A map of the lines to write.
+ */
+function get_tric_test_config_lines( array $overrides = [] ) {
+	$defaults = [];
+
+	return array_merge( $defaults, $overrides );
+}
+
+/**
  * Creates a `test_config.tric.php` file, if one exists it will be overwritten.
  *
- * @param string $plugin_path The plugin path.
+ * The function will not write anything if there are no test config lines to write.
+ *
+ * @param string               $plugin_path  The plugin path.
+ * @param array<string,string> $config_lines A map of lines to write, where the key is the type of entry and the value
+ *                                           are the lines to write for that entry.
+ *                                           E.g. `[ 'define_plugins_dir' => "define( 'WP_PLUGIN_DIR', '/plugins' );" ]`.
  *
  * @return bool Whether or not the test-config.php was created.
  */
-function write_tric_test_config( $plugin_path ) {
+function write_tric_test_config( $plugin_path, array $config_lines = [] ) {
 	$file = $plugin_path . '/test-config.tric.php';
 
-	$put  = file_put_contents( $file, "<?php\ndefine( 'WP_PLUGIN_DIR', '/plugins' );" );
+	$test_config_lines = get_tric_test_config_lines( $config_lines );
+
+	if ( empty( $test_config_lines ) ) {
+		return false;
+	}
+
+	$put = file_put_contents( $file, "<?php\n" . implode( "\n", $test_config_lines ) );
 
 	if ( false === $put ) {
 		echo magenta( "Could not write {$file}; please check the directory exists and is writeable.\n" );
 		exit( 1 );
 	}
+
+	return true;
 }
 
 /**
@@ -76,15 +104,24 @@ function write_codeception_config( $plugin_path ) {
 		return false;
 	}
 
-	$codeception = <<< CODECEPTION
+	$codeception = <<< CODECEPTION_LOCAL_CONFIG
 params:
   # read dynamic configuration parameters from the .env file
   - .env.testing.tric
+CODECEPTION_LOCAL_CONFIG;
+
+	$test_config_lines = get_tric_test_config_lines();
+
+	if ( ! empty( $test_config_lines ) ) {
+		$wploader_test_config = <<< WPLOADER_TEST_CONFIG
 modules:
   config:
     WPLoader:
       configFile: test-config.tric.php
-CODECEPTION;
+WPLOADER_TEST_CONFIG;
+
+		$codeception .= $wploader_test_config;
+	}
 
 	$put =  file_put_contents( $file, $codeception );
 
