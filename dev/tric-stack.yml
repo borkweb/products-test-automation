@@ -114,6 +114,7 @@ services:
       - tric
     extra_hosts:
       - "wordpress.test:172.${TRIC_TEST_SUBNET:-28}.1.1"
+    user: "${DOCKER_RUN_UID:-}:${DOCKER_RUN_GID:-}"
     environment:
       FIXUID: "${FIXUID:-1}"
       # Set these values to allow the container to look wordpress up.
