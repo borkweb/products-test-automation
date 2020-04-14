@@ -450,3 +450,77 @@ function update_stack_images() {
 	tric_realtime()( [ 'pull', '--include-deps' ] );
 	echo light_cyan( "\n\nStack images updated.\n" );
 }
+
+/**
+ * Run a command using the `npm` service.
+ *
+ * If `common` is available in the target and the command dos not fail, then the user will be prompted to run the same
+ * command on `common`.
+ *
+ * @param array<string> $command The `npm` command to run, e.g. `['install','--save-dev']` in array format.
+ */
+function tric_run_npm_command( array $command ) {
+	$using = tric_target();
+	echo light_cyan( "Using {$using}\n" );
+
+	setup_id();
+	$status = tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $command ) );
+
+	if ( 0 !== $status ) {
+		// If the composer command failed there's no point in trying the same on `common`
+		return;
+	}
+
+	if ( ! file_exists( tric_plugins_dir( "{$using}/common" ) ) ) {
+		return;
+	}
+
+	if ( ask( "\nWould you like to run that npm command against common?", 'yes' ) ) {
+		tric_switch_target( "{$using}/common" );
+
+		echo light_cyan( "Temporarily using " . tric_target() . "\n" );
+
+		tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $command ) );
+
+		Tribe\Test\tric_switch_target( $using );
+
+		echo light_cyan( "Using " . tric_target() . " once again\n" );
+	}
+}
+
+/**
+ * Run a command using the `composer` service.
+ *
+ * If `common` is available in the target and the command dos not fail, then the user will be prompted to run the same
+ * command on `common`.
+ *
+ * @param array<string> $command The `composer` command to run, e.g. `['install','--no-dev']` in array format.
+ */
+function tric_run_composer_command( array $command ) {
+	$using = tric_target();
+	echo light_cyan( "Using {$using}\n" );
+
+	setup_id();
+	$status = tric_realtime()( array_merge( [ 'run', '--rm', 'composer' ], $command ) );
+
+	if ( 0 !== $status ) {
+		// If the composer command failed there's no point in trying the same on `common`
+		return;
+	}
+
+	if ( ! file_exists( tric_plugins_dir( "{$using}/common" ) ) ) {
+		return;
+	}
+
+	if ( ask( "\nWould you like to run that composer command against common?", 'yes' ) ) {
+		tric_switch_target( "{$using}/common" );
+
+		echo light_cyan( "Temporarily using " . tric_target() . "\n" );
+
+		tric_realtime()( array_merge( [ 'run', '--rm', 'composer' ], $command ) );
+
+		tric_switch_target( $using );
+
+		echo light_cyan( "Using " . tric_target() . " once again\n" );
+	}
+}

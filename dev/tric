@@ -23,6 +23,8 @@ use function Tribe\Test\light_cyan;
 use function Tribe\Test\magenta;
 use function Tribe\Test\rebuild_stack;
 use function Tribe\Test\restart_service;
+use function Tribe\Test\tric_run_composer_command;
+use function Tribe\Test\tric_run_npm_command;
 use function Tribe\Test\setup_id;
 use function Tribe\Test\setup_plugin_tests;
 use function Tribe\Test\setup_tric_env;
@@ -343,28 +345,7 @@ switch ( $args( 'subcommand', 'help' ) ) {
 			break;
 		}
 
-		$using = tric_target();
-		echo light_cyan( "Using {$using}\n" );
-
-		setup_id();
-		$composer_command = $args( '...' );
-		tric_realtime()( array_merge( [ 'run', '--rm', 'composer' ], $composer_command ) );
-
-		if ( ! file_exists( Tribe\Test\tric_plugins_dir( "{$using}/common" ) ) ) {
-			break;
-		}
-
-		if ( ask( "\nWould you like to run that composer command against common?", 'yes' ) ) {
-			Tribe\Test\tric_switch_target( "{$using}/common" );
-
-			echo light_cyan( "Temporarily using " . tric_target() . "\n" );
-
-			tric_realtime()( array_merge( [ 'run', '--rm', 'composer' ], $composer_command ) );
-
-			Tribe\Test\tric_switch_target( $using );
-
-			echo light_cyan( "Using " . tric_target() ." once again\n" );
-		}
+		tric_run_composer_command( $args( '...' ) );
 		break;
 	case 'config':
 		if ( $is_help ) {
@@ -443,30 +424,8 @@ switch ( $args( 'subcommand', 'help' ) ) {
 			break;
 		}
 
-		$using = tric_target();
-		echo light_cyan( "Using {$using}\n" );
-
-		setup_id();
-		$npm_command   = $args( '...' );
-		tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
-
-		if ( ! file_exists( Tribe\Test\tric_plugins_dir( "{$using}/common" ) ) ) {
-			break;
-		}
-
-		if ( ask( "\nWould you like to run that npm command against common?", 'yes' ) ) {
-			Tribe\Test\tric_switch_target( "{$using}/common" );
-
-			echo light_cyan( "Temporarily using " . tric_target() . "\n" );
-
-			tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
-
-			Tribe\Test\tric_switch_target( $using );
-
-			echo light_cyan( "Using " . tric_target() ." once again\n" );
-		}
+		tric_run_npm_command( $args( '...' ) );
 		break;
-
 	case 'restart':
 		if ( $is_help ) {
 			echo "Restarts a container part of the stack.\n";
