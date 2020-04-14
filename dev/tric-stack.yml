@@ -132,7 +132,7 @@ services:
       # XDH=$(ip route | grep docker0 | awk '{print $9}') docker-compose ...
       XDEBUG_CONFIG: "idekey=${XDK:-tric}_cc remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
       # Move to the target directory before running the command.
-      CODECEPTION_PROJECT_DIR: /plugins/${TRIC_CURRENT_PROJECT:-test}
+      CODECEPTION_PROJECT_DIR: plugins/${TRIC_CURRENT_PROJECT:-test}
     depends_on:
       - wordpress
       - chrome
