@@ -525,3 +525,14 @@ function tric_run_composer_command( array $command ) {
 		echo light_cyan( "Using " . tric_target() . " once again\n" );
 	}
 }
+
+/**
+ * Returns an array of arguments to correctly run a wp-cli commann in the tric stack.
+ *
+ * @param array<string> $command The wp-cli command to run, anything after the `wp`; e.g. `[ 'plugin', 'list' ]`.
+ *
+ * @return array<string> The complete command arguments, ready to be used in the `tric` or `tric_realtime` functions.
+ */
+function cli_command( array $command = [] ) {
+	return array_merge( [ 'run', '--rm', 'cli', 'wp', '--allow-root' ], $command );
+}

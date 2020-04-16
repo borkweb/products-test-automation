@@ -131,6 +131,6 @@ WPLOADER_TEST_CONFIG;
 		echo magenta( "Could not write {$file}; please check the directory exists and is writeable.\n" );
 		exit( 1 );
 	}
-	
+
 	return true;
 }

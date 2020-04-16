@@ -12,5 +12,5 @@ if ( $is_help ) {
 
 setup_id();
 // Runs a wp-cli command in the stack, using the `cli` service.
-$composer_command = $args( '...' );
-tric_realtime()( array_merge( [ 'run', '--rm', 'cli', 'wp' ], $composer_command ) );
+$command = $args( '...' );
+tric_realtime()( cli_command( $command ) );
