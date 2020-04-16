@@ -77,6 +77,7 @@ function write_tric_test_config( $plugin_path, array $config_lines = [] ) {
 	$test_config_lines = get_tric_test_config_lines( $config_lines );
 
 	if ( empty( $test_config_lines ) ) {
+		// There's no need for a tric test config file, let's skip this.
 		return false;
 	}
 
@@ -113,6 +114,7 @@ CODECEPTION_LOCAL_CONFIG;
 	$test_config_lines = get_tric_test_config_lines();
 
 	if ( ! empty( $test_config_lines ) ) {
+		// Add a section for a custom test configuration file only if required.
 		$wploader_test_config = <<< WPLOADER_TEST_CONFIG
 modules:
   config:
@@ -129,6 +131,6 @@ WPLOADER_TEST_CONFIG;
 		echo magenta( "Could not write {$file}; please check the directory exists and is writeable.\n" );
 		exit( 1 );
 	}
-
+	
 	return true;
 }
