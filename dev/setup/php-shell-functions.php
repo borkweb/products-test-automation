@@ -1405,7 +1405,7 @@ function wordpress_container_root_dir( $path = '/' ) {
 function cli() {
 	$service = is_ci() ? 'cli' : 'cli_debug';
 
-	return docker_compose( [ '-f', stack(), 'run', $service, '--allow-root' ] );
+	return docker_compose( [ '-f', '"' . stack() . '"', 'run', $service, '--allow-root' ] );
 }
 
 /**
@@ -1420,7 +1420,7 @@ function wordpress_url() {
 		return 'http://tribe.test';
 	}
 
-	$config = check_status_or_exit( docker_compose( [ '-f', stack() ] )( [ 'config' ] ) )( 'string_output' );
+	$config = check_status_or_exit( docker_compose( [ '-f', '"' . stack() . '"' ] )( [ 'config' ] ) )( 'string_output' );
 
 	preg_match( '/wordpress_debug:.*?ports:.*?(?<port>\\d+):80\\/tcp/us', $config, $m );
 
@@ -1473,7 +1473,7 @@ function docker_compose_realtime( array $options = [] ) {
 
 	$host_ip = false;
 	if ( ! $is_ci && 'Linux' === os() ) {
-		$options = array_merge( [ '-f', stack( '-linux-override' ) ], $options );
+		$options = array_merge( [ '-f', '"' . stack( '-linux-override' ) . '"' ], $options );
 		// If we're running on Linux, then try to fetch the host machine IP using a command.
 		$host_ip = host_ip( 'Linux' );
 	}
@@ -1576,9 +1576,9 @@ function wordpress_fetch_versions() {
  */
 function prepare_wordpress( $wordpress_version  = 'nightly' ) {
 	$stack          = stack();
-	$docker_compose = docker_compose( [ '-f', $stack ] );
-	$cli            = docker_compose( [ '-f', $stack, 'run', '--rm', 'cli', '--allow-root' ] );
-	$waiter         = docker_compose( [ '-f', $stack, 'run', '--rm', 'waiter' ] );
+	$docker_compose = docker_compose( [ '-f', '"' . $stack . '"' ] );
+	$cli            = docker_compose( [ '-f', '"' . $stack . '"', 'run', '--rm', 'cli', '--allow-root' ] );
+	$waiter         = docker_compose( [ '-f', '"' . $stack . '"', 'run', '--rm', 'waiter' ] );
 	$service        = is_ci() ? 'wordpress' : 'wordpress_debug';
 
 	// Start the WordPress container.
