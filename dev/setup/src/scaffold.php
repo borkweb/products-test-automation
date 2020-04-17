@@ -93,24 +93,26 @@ function write_tric_test_config( $plugin_path, array $config_lines = [] ) {
 }
 
 /**
- * Creates a codeception.yml if needed.
+ * Creates a `codeception.tric.yml` file if needed.
+ *
+ * The file is the one tric will load, using the `-c` or `--configuration` option, on top of the usual Codeception
+ * configuration files.
+ * This function will override the existing file by design: users should be able to change some values, or update tric,
+ * and have that reflected in a new configuration file.
  *
  * @param string $plugin_path The plugin path.
  *
- * @return bool Whether or not the codeception.yml was created.
+ * @see The run command for more information.
+ *
  */
 function write_codeception_config( $plugin_path ) {
-	$file = $plugin_path . '/codeception.yml';
+	$file = $plugin_path . '/codeception.tric.yml';
 
-	if ( file_exists( $file ) ) {
-		return false;
-	}
-
-	$codeception = <<< CODECEPTION_LOCAL_CONFIG
+	$codeception = <<< CONFIG
 params:
   # read dynamic configuration parameters from the .env file
   - .env.testing.tric
-CODECEPTION_LOCAL_CONFIG;
+CONFIG;
 
 	$test_config_lines = get_tric_test_config_lines();
 
@@ -126,12 +128,10 @@ WPLOADER_TEST_CONFIG;
 		$codeception .= $wploader_test_config;
 	}
 
-	$put =  file_put_contents( $file, $codeception );
+	$put = file_put_contents( $file, $codeception );
 
 	if ( false === $put ) {
 		echo magenta( "Could not write {$file}; please check the directory exists and is writeable.\n" );
 		exit( 1 );
 	}
-
-	return true;
 }
