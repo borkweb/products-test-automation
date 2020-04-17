@@ -1,4 +1,10 @@
 <?php
+/**
+ * Handles the `init` command to initialize a plugin to use tric.
+ *
+ * @var bool     $is_help Whether we're handling an `help` request on this command or not.
+ * @var \Closure $args    The argument map closure, as produced by the `args` function.
+ */
 
 namespace Tribe\Test;
 
