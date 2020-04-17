@@ -16,11 +16,12 @@ function write_tric_env_file( $plugin_path ) {
 	$mysql_root_password = getenv( 'MYSQL_ROOT_PASSWORD' );
 	$wp_http_port        = getenv( 'WORDPRESS_HTTP_PORT');
 	$plugin_env          = file_get_contents( $plugin_path . '/.env' );
+	$wp_domain = 'wordpress.test';
 
-	$strings = [
+	$strings   = [
 		'/WP_ROOT_FOLDER=.*/'      => 'WP_ROOT_FOLDER=/var/www/html',
-		'/WP_URL=.*/'              => 'WP_URL=http://localhost:' . $wp_http_port,
-		'/WP_DOMAIN=.*/'           => 'WP_DOMAIN=localhost:' . $wp_http_port,
+		'/WP_URL=.*/'              => 'WP_URL=http://' . $wp_domain,
+		'/WP_DOMAIN=.*/'           => 'WP_DOMAIN=' . $wp_domain,
 		'/WP_DB_PORT=.*/'          => 'WP_DB_PORT=3306',
 		'/WP_DB_HOST=.*/'          => 'WP_DB_HOST=db',
 		'/WP_DB_NAME=.*/'          => 'WP_DB_NAME=test',
