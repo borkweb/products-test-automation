@@ -477,6 +477,8 @@ function ssh_auth_sock() {
  * @return string|null The user answer or the default value if the user did not provide an answer to the question.
  */
 function ask( $question, $default = null ) {
+	$is_interactive = getenv( 'TRIC_INTERACTIVE' );
+
 	$prompt = colorize( "<bold>{$question}</bold>" );
 
 	if ( null !== $default && '' !== $default ) {
@@ -489,7 +491,11 @@ function ask( $question, $default = null ) {
 		$is_boolean = true;
 	}
 
-	$value = readline( $prompt . ' ' );
+	if ( empty( $is_interactive ) ) {
+		$value = $default;
+	} else {
+		$value = readline( $prompt . ' ' );
+	}
 
 	if ( $is_boolean ) {
 		return preg_match( '/^y/i', $value );

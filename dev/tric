@@ -62,6 +62,7 @@ Available commands:
 <light_cyan>config</light_cyan>         Prints the stack configuration as interpolated from the environment.
 <light_cyan>debug</light_cyan>          Activates or deactivates {$cli_name} debug output or returns the current debug status.
 <light_cyan>help</light_cyan>           Displays this help message.
+<light_cyan>interactive</light_cyan>    Activates or deactivates interactivity of {$cli_name} commands.
 <light_cyan>logs</light_cyan>           Displays the current stack logs.
 <light_cyan>info</light_cyan>           Displays information about the tric tool.
 
@@ -98,6 +99,7 @@ switch ( $subcommand ) {
 	case 'here':
 	case 'info':
 	case 'init':
+	case 'interactive':
 	case 'logs':
 	case 'npm':
 	case 'reset':
