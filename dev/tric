@@ -87,6 +87,7 @@ switch ( $subcommand ) {
 	case 'help':
 		echo $help_message;
 		break;
+	case 'airplane-mode':
 	case 'build':
 	case 'cc':
 	case 'cli':
@@ -109,7 +110,6 @@ switch ( $subcommand ) {
 	case 'use':
 	case 'using':
 	case 'xdebug':
-	case 'airplane-mode':
 		include_once __DIR__ . '/setup/src/commands/' . $subcommand . '.php';
 		break;
 }
