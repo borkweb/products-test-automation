@@ -25,6 +25,9 @@ services:
       tric:
         # Allow the other conatiners to read this container with a pretty URL.
         ipv4_address: 172.${TRIC_TEST_SUBNET:-28}.1.1
+    extra_hosts:
+      # Let's make sure the WordPress service can reach itself with a pretty URL for internal requests.
+      - "wordpress.test:172.${TRIC_TEST_SUBNET:-28}.1.1"
     depends_on:
       - db
     # Run the container as the host user and group.
