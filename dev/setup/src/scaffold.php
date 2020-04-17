@@ -16,11 +16,12 @@ function write_tric_env_file( $plugin_path ) {
 	$mysql_root_password = getenv( 'MYSQL_ROOT_PASSWORD' );
 	$wp_http_port        = getenv( 'WORDPRESS_HTTP_PORT');
 	$plugin_env          = file_get_contents( $plugin_path . '/.env' );
+	$wp_domain = 'wordpress.test';
 
-	$strings = [
+	$strings   = [
 		'/WP_ROOT_FOLDER=.*/'      => 'WP_ROOT_FOLDER=/var/www/html',
-		'/WP_URL=.*/'              => 'WP_URL=http://localhost:' . $wp_http_port,
-		'/WP_DOMAIN=.*/'           => 'WP_DOMAIN=localhost:' . $wp_http_port,
+		'/WP_URL=.*/'              => 'WP_URL=http://' . $wp_domain,
+		'/WP_DOMAIN=.*/'           => 'WP_DOMAIN=' . $wp_domain,
 		'/WP_DB_PORT=.*/'          => 'WP_DB_PORT=3306',
 		'/WP_DB_HOST=.*/'          => 'WP_DB_HOST=db',
 		'/WP_DB_NAME=.*/'          => 'WP_DB_NAME=test',
@@ -92,24 +93,26 @@ function write_tric_test_config( $plugin_path, array $config_lines = [] ) {
 }
 
 /**
- * Creates a codeception.yml if needed.
+ * Creates a `codeception.tric.yml` file if needed.
+ *
+ * The file is the one tric will load, using the `-c` or `--configuration` option, on top of the usual Codeception
+ * configuration files.
+ * This function will override the existing file by design: users should be able to change some values, or update tric,
+ * and have that reflected in a new configuration file.
  *
  * @param string $plugin_path The plugin path.
  *
- * @return bool Whether or not the codeception.yml was created.
+ * @see The run command for more information.
+ *
  */
 function write_codeception_config( $plugin_path ) {
-	$file = $plugin_path . '/codeception.yml';
+	$file = $plugin_path . '/codeception.tric.yml';
 
-	if ( file_exists( $file ) ) {
-		return false;
-	}
-
-	$codeception = <<< CODECEPTION_LOCAL_CONFIG
+	$codeception = <<< CONFIG
 params:
   # read dynamic configuration parameters from the .env file
   - .env.testing.tric
-CODECEPTION_LOCAL_CONFIG;
+CONFIG;
 
 	$test_config_lines = get_tric_test_config_lines();
 
@@ -125,12 +128,10 @@ WPLOADER_TEST_CONFIG;
 		$codeception .= $wploader_test_config;
 	}
 
-	$put =  file_put_contents( $file, $codeception );
+	$put = file_put_contents( $file, $codeception );
 
 	if ( false === $put ) {
 		echo magenta( "Could not write {$file}; please check the directory exists and is writeable.\n" );
 		exit( 1 );
 	}
-
-	return true;
 }

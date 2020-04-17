@@ -25,6 +25,9 @@ services:
       tric:
         # Allow the other conatiners to read this container with a pretty URL.
         ipv4_address: 172.${TRIC_TEST_SUBNET:-28}.1.1
+    extra_hosts:
+      # Let's make sure the WordPress service can reach itself with a pretty URL for internal requests.
+      - "wordpress.test:172.${TRIC_TEST_SUBNET:-28}.1.1"
     depends_on:
       - db
     # Run the container as the host user and group.
@@ -67,6 +70,8 @@ services:
       - ./_wordpress:/var/www/html
       # Share the WordPress core installation files in the `dev/_plugins` directory.
       - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins
+      # Override the default configuration with a custom one to support the `wordpress.test` URL.
+      - ./test/_containers/wordpress/apache.conf:/var/www/html/.htaccess
 
   cli:
     image: wordpress:cli
@@ -125,12 +130,12 @@ services:
       # Configure this to debug the tests with XDebug.
       # Map the `dev/_wordpress` directory to `/var/www/html' directory in your IDE of choice.
       # Map the `dev/_plugins` directory to `/plugins' directory in your IDE of choice.
-      PHP_IDE_CONFIG: "serverName=${XDK:-tric}_cc"
+      PHP_IDE_CONFIG: "serverName=${XDK:-tric}"
       # The `remote_host` is set to `host.docker.internal` that will resolve to the host machine IP address, from
       # within the container, on macOS and Windows.
       # On Linux set the host machine IP address before calling the stack:
       # XDH=$(ip route | grep docker0 | awk '{print $9}') docker-compose ...
-      XDEBUG_CONFIG: "idekey=${XDK:-tric}_cc remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
+      XDEBUG_CONFIG: "idekey=${XDK:-tric} remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
       # Move to the target directory before running the command from the plugins directory.
       CODECEPTION_PROJECT_DIR: /var/www/html/wp-content/plugins/${TRIC_CURRENT_PROJECT:-test}
     depends_on:

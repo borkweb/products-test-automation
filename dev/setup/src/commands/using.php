@@ -1,4 +1,10 @@
 <?php
+/**
+ * Handles the `using` command.
+ *
+ * @var bool     $is_help Whether we're handling an `help` request on this command or not.
+ * @var \Closure $args    The argument map closure, as produced by the `args` function.
+ */
 
 namespace Tribe\Test;
 
@@ -14,4 +20,9 @@ if ( empty( $using ) ) {
 	echo magenta( "Currently not using any target, commands requiring a target will fail.\n" );
 	return;
 }
+
 echo light_cyan( "Using {$using}\n" );
+
+if ( tric_plugins_dir() !== dev( 'plugins' ) ) {
+	echo light_cyan( "\nFull target path: " ) . tric_plugins_dir( tric_target() );
+}

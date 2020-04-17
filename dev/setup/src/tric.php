@@ -227,18 +227,12 @@ function setup_plugin_tests( $plugin ) {
 
 		write_tric_env_file( $target_path );
 		echo colorize( "Created/updated <light_cyan>{$relative_path}.env.testing.tric</light_cyan> " .
-		               "in {$plugin}.\n" );
+		               "in <light_cyan>{$plugin}</light_cyan>.\n" );
 
 
-		if ( write_codeception_config( $target_path ) ) {
-			echo colorize( "Created <light_cyan>{$relative_path}codeception.yml</light_cyan> in " .
-			               "<light_cyan>{$plugin}</light_cyan>.\n" );
-		} else {
-			echo colorize( "Skipped creating <light_cyan>{$relative_path}codeception.yml</light_cyan>" .
-			               " in <light_cyan>{$plugin}</light_cyan>. It already exists (*).\n" );
-			echo colorize( "\n(*) A skipped codeception.yml file could be ok. If your tests fail to run, try removing the" .
-			               " codeception.yml and running <light_cyan>tric init <plugin></light_cyan> again.\n\n" );
-		}
+		write_codeception_config( $target_path );
+		echo colorize( "Created/updated <light_cyan>{$relative_path}codeception.tric.yml</light_cyan> in " .
+		               "<light_cyan>{$plugin}</light_cyan>.\n" );
 	}
 }
 
@@ -358,18 +352,35 @@ function tric_wp_dir( $path = '' ) {
  * Prints the current XDebug status to screen.
  */
 function xdebug_status() {
-	$value = getenv( 'XDE' );
-	echo 'XDebug status is: ' . ( $value ? light_cyan( 'on' ) : magenta( 'off' ) ) . PHP_EOL;
+	$enabled = getenv( 'XDE' );
+	$ide_key = getenv( 'XDK' );
+	if ( empty( $ide_key ) ) {
+		$ide_key = 'tric';
+	}
+	$localhost_port = getenv( 'WORDPRESS_HTTP_PORT' );
+	if ( empty( $localhost_port ) ) {
+		$localhost_port = '8888';
+	}
+
+	echo 'XDebug status is: ' . ( $enabled ? light_cyan( 'on' ) : magenta( 'off' ) ) . PHP_EOL;
 	echo 'Remote host: ' . light_cyan( getenv( 'XDH' ) ) . PHP_EOL;
 	echo 'Remote port: ' . light_cyan( getenv( 'XDP' ) ) . PHP_EOL;
-	echo 'WordPress IDE Key: ' . light_cyan( getenv( 'XDK' ) ) . PHP_EOL;
-	echo 'Codeception IDE Key: ' . light_cyan( getenv( 'XDK' ) . '_cc' ) . PHP_EOL;
+
+	echo 'IDE Key: ' . light_cyan( $ide_key ) . PHP_EOL;
 	echo colorize( PHP_EOL . "You can override these values in the <light_cyan>.env.tric.local" .
 	               "</light_cyan> file or by using the " .
 	               "<light_cyan>'xdebug (host|key|port) <value>'</light_cyan> command." ) . PHP_EOL;
-	echo PHP_EOL . ( 'Ensure the following path mappings are set (host path => container path) in your IDE:' ) . PHP_EOL . PHP_EOL;
-	echo colorize( "  - <light_cyan>" . tric_plugins_dir() . "</light_cyan> => <light_cyan>/plugins</light_cyan>" ) . PHP_EOL;
-	echo colorize( "  - <light_cyan>" . tric_wp_dir() . "</light_cyan> => <light_cyan>/var/www/html</light_cyan>" );
+
+
+	echo PHP_EOL . 'Set up, in your IDE, a server with the following parameters to debug PHP requests:' . PHP_EOL;
+	echo 'IDE key, or server name: ' . light_cyan( $ide_key ) . PHP_EOL;
+	echo 'Host: ' . light_cyan( 'http://localhost' . ( $localhost_port === '80' ? '' : ':' . $localhost_port ) ) . PHP_EOL;
+	echo colorize( 'Path mapping (host => server): <light_cyan>'
+	               . tric_plugins_dir()
+	               . '</light_cyan> => <light_cyan>/var/www/html/wp-content/plugins</light_cyan>' ) . PHP_EOL;
+	echo colorize( 'Path mapping (host => server): <light_cyan>'
+	               . tric_wp_dir()
+	               . '</light_cyan> => <light_cyan>/var/www/html</light_cyan>' );
 
 	$default_mask = ( tric_wp_dir() === dev( '/_wordpress' ) ) + 2 * ( tric_plugins_dir() === dev( '/_plugins' ) );
 
