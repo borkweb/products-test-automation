@@ -70,6 +70,8 @@ services:
       - ./_wordpress:/var/www/html
       # Share the WordPress core installation files in the `dev/_plugins` directory.
       - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins
+      # Override the default configuration with a custom one to support the `wordpress.test` URL.
+      - ./test/_containers/wordpress/apache.conf:/var/www/html/.htaccess
 
   cli:
     image: wordpress:cli
