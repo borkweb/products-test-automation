@@ -123,8 +123,8 @@ function restart_php_services() {
  */
 function restart_service( $service, $pretty_name = null ) {
 	$pretty_name   = $pretty_name ?: $service;
-	$tric          = docker_compose( [ '-f', stack() ] );
-	$tric_realtime = docker_compose_realtime( [ '-f', stack() ] );
+	$tric          = docker_compose( [ '-f', '"' . stack() . '"' ] );
+	$tric_realtime = docker_compose_realtime( [ '-f', '"' . stack() . '"' ] );
 
 	$service_running = $tric( [ 'ps', '-q', $service ] )( 'string_output' );
 	if ( ! empty( $service_running ) ) {
@@ -255,7 +255,7 @@ function github_company_handle() {
  * @return \Closure The process closure to start a real-time process using tric stack.
  */
 function tric_realtime() {
-	return docker_compose_realtime( [ '-f', stack() ] );
+	return docker_compose_realtime( [ '-f', '"' . stack() . '"' ] );
 }
 
 /**
@@ -264,7 +264,7 @@ function tric_realtime() {
  * @return \Closure The process closure to start a real-time process using tric stack.
  */
 function tric_process() {
-	return docker_compose( [ '-f', stack() ] );
+	return docker_compose( [ '-f', '"' . stack() . '"' ] );
 }
 
 /**

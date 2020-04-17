@@ -65,13 +65,13 @@ function wordpress_fetch_versions() {
  */
 function prepare_wordpress( $wordpress_version  = 'nightly' ) {
 	$stack          = stack();
-	$docker_compose = docker_compose( [ '-f', $stack ] );
-	$cli            = docker_compose( [ '-f', $stack, 'run', '--rm', 'cli', '--allow-root' ] );
-	$waiter         = docker_compose( [ '-f', $stack, 'run', '--rm', 'waiter' ] );
+	$docker_compose = docker_compose( [ '-f', '"' . $stack . '"' ] );
+	$cli            = docker_compose( [ '-f', '"' . $stack . '"', 'run', '--rm', 'cli', '--allow-root' ] );
+	$waiter         = docker_compose( [ '-f', '"' . $stack . '"', 'run', '--rm', 'waiter' ] );
 	$service        = is_ci() ? 'wordpress' : 'wordpress_debug';
 
 	// Start the WordPress container.
-	check_status_or_exit( $docker_compose( [ 'up', '-d', $service] ) );
+	check_status_or_exit( $docker_compose( [ 'up', '-d', $service ] ) );
 
 	// Wait for WordPress container to come up.
 	check_status_or_wait( $waiter() );
