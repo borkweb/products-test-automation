@@ -498,6 +498,53 @@ function update_stack_images() {
 }
 
 /**
+ * Maybe runs composer install on a given target
+ *
+ * @param string $target Target to potentially run composer install against.
+ */
+function tric_maybe_run_build_install( $command, $target ) {
+	$run = ask(
+		"\nWould you like to run the {$command} build processes for this plugin?",
+		'yes'
+	);
+
+	if ( empty( $run ) ) {
+		return;
+	}
+
+	$current_target = tric_target();
+
+	if ( $current_target !== $target ) {
+		tric_switch_target( $target );
+	}
+
+	$function = "\Tribe\Test\\tric_run_{$command}_command";
+	$function( [ 'install' ] );
+
+	if ( $current_target !== $target ) {
+		tric_switch_target( $current_target );
+	}
+}
+
+/**
+ * Maybe runs composer install on a given target
+ *
+ * @param string $target Target to potentially run composer install against.
+ */
+function tric_maybe_run_composer_install( $target ) {
+	return tric_maybe_run_build_install( 'composer', $target );
+}
+
+/**
+ * Maybe runs npm install on a given target
+ *
+ * @param string $target Target to potentially run npm install against.
+ */
+function tric_maybe_run_npm_install( $target ) {
+	return tric_maybe_run_build_install( 'npm', $target );
+}
+
+/**
  * Run a command using the `npm` service.
  *
  * If `common` is available in the target and the command dos not fail, then the user will be prompted to run the same
