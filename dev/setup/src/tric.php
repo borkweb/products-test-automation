@@ -349,6 +349,40 @@ function tric_wp_dir( $path = '' ) {
 }
 
 /**
+ * Prints the current interactive status to screen.
+ */
+function interactive_status() {
+	$enabled = getenv( 'TRIC_INTERACTIVE' );
+
+	echo 'Interactive status is: ' . ( $enabled ? light_cyan( 'on' ) : magenta( 'off' ) ) . PHP_EOL;
+}
+
+/**
+ * Handles the interactive command request.
+ *
+ * @param callable $args The closure that will produce the current interactive request arguments.
+ */
+function tric_handle_interactive( callable $args ) {
+	$run_settings_file = dev( '/.env.tric.run' );
+	$toggle            = $args( 'toggle', 'on' );
+
+	if ( 'status' === $toggle ) {
+		interactive_status();
+
+		return;
+	}
+
+	$value = 'on' === $toggle ? 1 : 0;
+	echo 'Interactive status: ' . ( $value ? light_cyan( 'on' ) : magenta( 'off' ) );
+
+	if ( $value === (int) getenv( 'TRIC_INTERACTIVE' ) ) {
+		return;
+	}
+
+	write_env_file( $run_settings_file, [ 'TRIC_INTERACTIVE' => $value ], true );
+}
+
+/**
  * Prints the current XDebug status to screen.
  */
 function xdebug_status() {
@@ -368,19 +402,19 @@ function xdebug_status() {
 
 	echo 'IDE Key: ' . light_cyan( $ide_key ) . PHP_EOL;
 	echo colorize( PHP_EOL . "You can override these values in the <light_cyan>.env.tric.local" .
-	               "</light_cyan> file or by using the " .
-	               "<light_cyan>'xdebug (host|key|port) <value>'</light_cyan> command." ) . PHP_EOL;
+			"</light_cyan> file or by using the " .
+			"<light_cyan>'xdebug (host|key|port) <value>'</light_cyan> command." ) . PHP_EOL;
 
 
 	echo PHP_EOL . 'Set up, in your IDE, a server with the following parameters to debug PHP requests:' . PHP_EOL;
 	echo 'IDE key, or server name: ' . light_cyan( $ide_key ) . PHP_EOL;
 	echo 'Host: ' . light_cyan( 'http://localhost' . ( $localhost_port === '80' ? '' : ':' . $localhost_port ) ) . PHP_EOL;
 	echo colorize( 'Path mapping (host => server): <light_cyan>'
-	               . tric_plugins_dir()
-	               . '</light_cyan> => <light_cyan>/var/www/html/wp-content/plugins</light_cyan>' ) . PHP_EOL;
+			. tric_plugins_dir()
+			. '</light_cyan> => <light_cyan>/var/www/html/wp-content/plugins</light_cyan>' ) . PHP_EOL;
 	echo colorize( 'Path mapping (host => server): <light_cyan>'
-	               . tric_wp_dir()
-	               . '</light_cyan> => <light_cyan>/var/www/html</light_cyan>' );
+		. tric_wp_dir()
+		. '</light_cyan> => <light_cyan>/var/www/html</light_cyan>' );
 
 	$default_mask = ( tric_wp_dir() === dev( '/_wordpress' ) ) + 2 * ( tric_plugins_dir() === dev( '/_plugins' ) );
 
@@ -388,12 +422,12 @@ function xdebug_status() {
 		case 1:
 			echo PHP_EOL . PHP_EOL;
 			echo yellow( 'Note: tric is using the default WordPress directory and a different plugins directory: ' .
-			             'set path mappings correctly and keep that in mind.' );
+				'set path mappings correctly and keep that in mind.' );
 			break;
 		case 2:
 			echo PHP_EOL . PHP_EOL;
 			echo yellow( 'Note: tric is using the default plugins directory and a different WordPress directory: ' .
-			             'set path mappings correctly and keep that in mind.' );
+				'set path mappings correctly and keep that in mind.' );
 			break;
 		case 3;
 		default:
