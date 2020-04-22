@@ -171,8 +171,10 @@ function tric_plugins_dir( $path = '' ) {
  * Clones a company plugin in the current plugin root directory.
  *
  * @param string $plugin The plugin name, e.g. `the-events-calendar` or `event-tickets`.
+ * @param string $branch The specific branch to clone. If not specified, then the default plugin repository branch
+ *                       will be cloned.
  */
-function clone_plugin( $plugin ) {
+function clone_plugin( $plugin, $branch = null ) {
 	$plugin_dir  = tric_plugins_dir();
 	$plugin_path = tric_plugins_dir( $plugin );
 
@@ -193,9 +195,14 @@ function clone_plugin( $plugin ) {
 
 	$repository = github_company_handle() . '/' . escapeshellcmd( $plugin );
 
-	$clone_status = process_realtime(
-		'git clone --recursive git@github.com:' . $repository . '.git ' . escapeshellcmd( $plugin_path )
+	$clone_command = sprintf(
+		'git clone %s --recursive git@github.com:%s.git %s',
+		null !== $branch ? '-b "' . $branch . '"' : '',
+		$repository,
+		escapeshellcmd( $plugin_path )
 	);
+
+	$clone_status = process_realtime( $clone_command );
 
 	if ( 0 !== $clone_status ) {
 		echo magenta( "Could not clone the {$repository} repository; please check your access rights to the repository." );
@@ -627,4 +634,91 @@ function tric_run_composer_command( array $command ) {
  */
 function cli_command( array $command = [] ) {
 	return array_merge( [ 'run', '--rm', 'cli', 'wp', '--allow-root' ], $command );
+}
+
+/**
+ * Switches a plugin branch.
+ *
+ * The function will try to pull, and switch to, the branch from the plugin repository remotes if the branch is not
+ * locally available.
+ * If the branch is locally available, then the function will switch to the local version of th branch; this might not
+ * be up-to-date with the remote: this is done by design as the sync of local and remote branches should be a developer
+ * concern.
+ *
+ * @since TBD
+ *
+ * @param string      $branch The name of the branch to switch to, e.g. `release/B20.03`.
+ * @param string|null $plugin The slug of the plugin to switch branch for; if not specified, then the current tric
+ *                            target will be used.
+ */
+function switch_plugin_branch( $branch, $plugin = null ) {
+	$cwd = getcwd();
+
+	if ( false === $cwd ) {
+		echo magenta( "Cannot get current working directory; is it accessible?j\n" );
+		exit( 1 );
+	}
+
+	$plugin     = null === $plugin ? tric_target() : $plugin;
+	$plugin_dir = tric_plugins_dir( $plugin );
+
+	echo light_cyan( "Temporarily using {$plugin}\n" );
+
+	$changed    = chdir( $plugin_dir );
+
+	if ( false === $changed ) {
+		echo magenta( "Cannot change to directory {$plugin_dir}; is it accessible?\n" );
+		exit( 1 );
+	}
+
+	$current_branch = check_status_or_exit( process( 'git branch --show-current' ) )( 'string_output' );
+
+	if ( $current_branch === $branch ) {
+		// Already on the correct branch.
+		return;
+	}
+
+	$locally_available = check_status_or_exit( process( 'git branch' ) )( 'output' );
+
+	// Clean up the branch names.
+	$locally_available = array_map( static function ( $branch ) {
+		return trim( preg_replace( '/^\*\\s+/', '', $branch ) );
+	}, $locally_available );
+
+	if ( ! in_array( $branch, $locally_available, true ) ) {
+		echo "Branch {$branch} not found locally: checking it out from remotes...";
+		$status  = 1;
+		$remotes = check_status_or_exit( process( 'git remote' ) )( 'output' );
+		foreach ( $remotes as $remote ) {
+			// Try fetching from each available remote.
+			$command = sprintf( 'git checkout -b %1$s --recurse-submodules %2$s/%1$s', $branch, $remote );
+			$status  = process_realtime( $command );
+			if ( 0 === $status ) {
+				// We're done.
+				break;
+			}
+		}
+
+		if ( 0 !== $status ) {
+			// If we could not fetch from any remote we failed.
+			echo magenta( "Remote branch fetch failed.\n" );
+			exit( 1 );
+		}
+	} else {
+		echo "Branch {$branch} found locally: checking it out...";
+		$command = 'git checkout --recurse-submodules ' . $branch;
+		if ( 0 !== process_realtime( $command ) ) {
+			echo magenta( "Branch switch failed.\n" );
+			exit( 1 );
+		}
+	}
+
+	// Restore the current working directory to the previous value.
+	echo light_cyan( 'Using ' . tric_target() . " once again\n" );
+	$restored = chdir( $cwd );
+
+	if ( false === $restored ) {
+		echo magenta( "Could not restore working directory {$cwd}\n" );
+		exit( 1 );
+	}
 }
