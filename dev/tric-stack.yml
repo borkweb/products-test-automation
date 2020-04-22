@@ -70,8 +70,6 @@ services:
       - ./_wordpress:/var/www/html
       # Share the WordPress core installation files in the `dev/_plugins` directory.
       - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins
-      # Share a set of configurations w/ the container, these will be used by the entrypoint.
-      - ./test/_containers/wordpress/conf:/var/www/html/conf
 
   cli:
     image: wordpress:cli
