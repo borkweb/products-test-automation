@@ -5,9 +5,9 @@ namespace Tribe\Test;
 if ( $is_help ) {
 	echo "Activates or deactivates {$cli_name} debug output or returns the current debug status.\n";
 	echo PHP_EOL;
-	echo colorize( "signature: <light_cyan>${argv[0]} debug (on|off)</light_cyan>\n" );
-	echo colorize( "example: <light_cyan>${argv[0]} debug on</light_cyan>" );
-	echo colorize( "example: <light_cyan>${argv[0]} debug status</light_cyan>" );
+	echo colorize( "signature: <light_cyan>{$cli_name} debug (on|off)</light_cyan>\n" );
+	echo colorize( "example: <light_cyan>{$cli_name} debug on</light_cyan>" );
+	echo colorize( "example: <light_cyan>{$cli_name} debug status</light_cyan>" );
 	return;
 }
 

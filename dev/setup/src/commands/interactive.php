@@ -5,10 +5,10 @@ namespace Tribe\Test;
 if ( $is_help ) {
 	echo "Activates and deactivated interactive mode. While deactivated, prompts will be suppressed and default values will be automatically selected.\n";
 	echo PHP_EOL;
-	echo colorize( "signature: <light_cyan>${argv[0]} interactive (on|off|status)</light_cyan>\n" );
-	echo colorize( "example: <light_cyan>${argv[0]} interactive on</light_cyan>\n" );
-	echo colorize( "example: <light_cyan>${argv[0]} interactive off</light_cyan>\n" );
-	echo colorize( "example: <light_cyan>${argv[0]} interactive status</light_cyan>\n" );
+	echo colorize( "signature: <light_cyan>{$cli_name} interactive (on|off|status)</light_cyan>\n" );
+	echo colorize( "example: <light_cyan>{$cli_name} interactive on</light_cyan>\n" );
+	echo colorize( "example: <light_cyan>{$cli_name} interactive off</light_cyan>\n" );
+	echo colorize( "example: <light_cyan>{$cli_name} interactive status</light_cyan>\n" );
 	return;
 }
 

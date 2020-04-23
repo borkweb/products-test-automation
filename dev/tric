@@ -83,6 +83,8 @@ $run_settings_file = dev( '/.env.tric.run' );
 
 $subcommand = $args( 'subcommand', 'help' );
 
+$cli_name = basename( $argv[0] );
+
 switch ( $subcommand ) {
 	default:
 	case 'help':

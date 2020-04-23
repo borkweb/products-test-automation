@@ -5,7 +5,7 @@ namespace Tribe\Test;
 if ( $is_help ) {
 	echo "Resets the tool to its initial state configured by the env files.\n";
 	echo PHP_EOL;
-	echo colorize( "usage: <light_cyan>${argv[0]} reset</light_cyan>" );
+	echo colorize( "usage: <light_cyan>{$cli_name} reset</light_cyan>" );
 	return;
 }
 
