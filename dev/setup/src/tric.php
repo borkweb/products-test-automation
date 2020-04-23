@@ -478,7 +478,7 @@ function tric_handle_xdebug( callable $args ) {
 		return;
 	}
 
-	write_env_file( $run_settings_file, [ 'XDE' => $value ], true );
+	write_env_file( $run_settings_file, [ 'XDE' => $value, 'XDEBUG_DISABLE' => empty( $value ) ? 1 : 0 ], true );
 
 	echo "\n\n";
 
