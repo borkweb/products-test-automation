@@ -15,6 +15,20 @@ if ( $is_help ) {
 	return;
 }
 
+$path         = args( [ 'path' ], $args( '...' ), 0 )( 'path', false );
+$current_path = tric_plugins_dir( tric_target() );
+
+if ( false !== $path ) {
+	// Are we using the path specified?
+	if ( $path === $current_path ) {
+		echo colorize( "<light_cyan>Yes, using:</light_cyan> {$path}" );
+	} else {
+		echo colorize( "<magenta>No, using:</magenta> {$current_path}" );
+	}
+
+	return;
+}
+
 $using = tric_target();
 if ( empty( $using ) ) {
 	echo magenta( "Currently not using any target, commands requiring a target will fail.\n" );
@@ -24,5 +38,5 @@ if ( empty( $using ) ) {
 echo light_cyan( "Using {$using}\n" );
 
 if ( tric_plugins_dir() !== dev( 'plugins' ) ) {
-	echo light_cyan( "\nFull target path: " ) . tric_plugins_dir( tric_target() );
+	echo light_cyan( "\nFull target path: " ) . $current_path;
 }
