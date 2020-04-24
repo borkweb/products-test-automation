@@ -1,123 +1,97 @@
-# Products tests
+# tric
 
-This whole repository is dedicated to tests that go beyond a single plugin and require, instead, all plugins to run.
+The tric (Modern **Tri**be **C**ontainers) CLI command provides a containerized and consistent environment for running automated tests.
 
-Due to the complex nature of each test the methodology, infrastructure and approach will change.
-Depending on the test you're trying to run, or debug, locally refer to the dedicated section.
+## Installation
 
-## Random activation tests
+1. Clone this repo
+2. Follow the [Setup Instructions](docs/setup.md)
 
-These tests use a fuzzy (pseudo-random) approach to test the issues that might arise during the plugins update paths.  
-To ensure no update path, sequence, order or version of update ever throws a fatal error, the tests will run a number of times ("epochs").
+## Usage
 
-On each run the tests will:
-1. run on a random version of WordPress (incl. the "nightly" one)
-2. install a random number of plugins, each in random version
-3. activate the plugins in a random order
-4. deactivate the plugins 
+The `tric` command has many subcommands. You can discover what those are by typing `tric` or `tric help`. If you want
+more details on any of the subcommands, simply type: `tric [subcommand] help`.
 
-Sticking to a stricter TDD definition steps 1 and 2 and the "arrange" phase, steps 3 and 4 are conflated "act" and "assert" phases.  
+### Plugin Directory
 
-Depending on when the failure happened, during the activation phase or the deactivation one, the debug approach is different.
+The `tric` command needs a plugin directory in which to read/write. By default, `tric` creates a `dev/_plugins` directory
+within this cloned repo. In most cases, developers like to run automated tests against the plugin paths where they are
+actively working on code–which likely lives elsewhere.
 
-### Downloading the plugins
-
-If you've not already downloaded the plugins, this is the first step to any further debug action.  
-Skip this step if you've already done it.
-
-Create a local version of the licenses file, run this in the terminal:
+Good news! You can re-point the plugin directory that is used to a different path with the `tric here` sub-command.
 
 ```bash
-cp env-licenses-exmaple .env.licenses
+# Change to your plugin containing dir (likely some path to wp-content/plugins)
+cd /path/to/your/wp-content/plugins
+
+tric here
 ```
 
-Fill each license field with a valid license taken from your theeventscalendar.com account.
+### Initializing a Plugin
 
-If you did not do it already, download the last versions of all plugins and the nightly builds.  
-From the repository root directory run:
+With your desired plugin containing directory set, you will need to initialize plugins so that they are prepped and ready
+for `tric`-based automated test running. You do that using `tric init [plugin]`.
+
+Example:
 
 ```bash
-php dev/setup/download-plugin-zips.php 5 "$(<.github/workflows/activation-test-plugins)" .env.licenses
-php dev/setup/download-plugin-nightly-zips.php 'release/B20.03' .env.licenses
+tric init event-tickets
 ```
 
-The script will download the last 5 versions of each plugin in the `dev/test/_plugin_store` directory and will use the `.env.licenses` file to authorize the download of the premium plugins.
+What this command does:
 
-### Debugging failed activation
+1. The plugin is **cloned** if it does not already exist in the plugin directory.
+2. Generates a `.env.testing.tric` env file in the plugin.
+3. Generates a `test-config.tric.php` file in the plugin.
+4. Generates a `codeception.tric.yml` file in the plugin.
+5. Prompts for confirmation on running `composer` and `npm` installs on the plugin (and its common dir if present).
 
-When the tests fail during the activation phase you will see an error message detailing the WordPress and "activation path" used in the tests.  
+### Using a Plugin and Running Tests
 
-The "activation path" means that installing the plugins with those specific versions and activating them in that specific order, will trigger a fatal error.
+Ok. You have `tric` set up. You've initialized your plugins. Now you want to run some tests. You need to tell `tric` which
+plugin you wish to use and then you can run tests to your heart's content!
 
-As an example, let's say the activation failed w/ the following scenario:
-* WordPress version `5.3.2`
-* `image-widget` version `4.4.5`
-* `the-events-calendar` version `5.0.2.1`
-* `events-community-tickets` version `4.7.1`
-
-The test infrastructure comes packed with a custom PHP interactive shell that you can use to run any function the tests use.  
-Run `sh dev/php-shell.sh` to start it; any command shown below is actually a command you would run in this shell.
-
-The following command will spin up the `wordpress_debug` container, install a clean version of WordPress in it, and prepare it for the tests:
-
-```php
-prepare_wordpress('5.3.2');
+```bash
+tric use event-tickets
+tric run wpunit
 ```
 
-> Note that using the `wordpress_debug` container will allow you to debug the activation and deactivation code with XDebug. Read more in the ["Using XDebug to debug activation and deactivation isues" section](#using-xdebug-to-debug-activation-and-deactivation-issues) section.
+#### `tric use [plugin]`
 
-Next, let's install the specific version of each plugin using the PHP interactive shell:
+The `tric use [plugin]` sub-command sets which plugin codeception will point to for test running. If you are unsure what
+plugins are available for use, you can execute `tribe use`. If you don't remember which plugin you are currently using,
+you can run `tribe using`. There are a few flavors of `tribe use`:
 
-```php
-install_plugin('image-wigdet','4.4.5');
-install_plugin('the-events-calendar','5.0.2.1');
-install_plugin('events-community-tickets','4.7.1');
-```
+* `tribe use [plugin]` – Sets a plugin as the current `tric` target (codeception, composer, npm, etc commands will run against that plugin).
+* `tribe use [plugin]/common` – Sets a plugin as the current `tric` target to the common/ directory of the plugin.
+* `tric use` – Lists out the plugins in `tric`'s plugin path.
+* `tric using` – Tells you which plugin you are currently "using" (i.e. the last plugin on which you ran `tric use [plugin]`).
 
-The `dev/test/_plugin_store` directory is set as plugins directory of the `wordpress_debug` container, so the installed plugins will appear, unzipped, in the `dev/test/_plugin_store` directory.  
+**NOTE: you cannot `tric use [plugin]` on multiple plugins at once. The `tric` command relies on its `.env.tric.run` file
+to dictate which plugin it is pointing at.**
 
-The unzipped version of each plugin is the one the `wordpress_container` is using: any modification you make to the plugin code, while trying to debug, will be reflected in the container.  
+#### `tric run [testsuite]`
 
-Activate the plugins one by one to reproduce the issue in the PHP interactive shell:
+The `tric run [testsuite]` does precisely what you would expect. It runs the test suite against the plugin that is currently
+being targeted by `tric use [plugin]`. This command is essentially a `codecept run` command, so you can pass all of the
+typical Codeception arguments for `codecept run`.
 
-```php
-wp_cli(['plugin','activate','image-widget','--debug']);
-wp_cli(['plugin','activate','the-events-calendar','--debug']);
-wp_cli(['plugin','activate','events-community-tickets','--debug']);
-```
+### Killing Tests or Stopping `tric`
 
-When the issue pops up, update the code and test the fix again.
+If you find yourself wanting to bring down the containers–whether to save on resources, bail out of tests, etc–you can
+do so with the `tric down` sub-command. Running `tric-down` will shut down the containers regardless of what is being
+run with them.
 
-### Debugging failed deactivation
+_Note: you may need to open a new shell window to run that command if another `tric` command is in progress._
 
-When the tests fail during the deactivation phase you will see an error message detailing the WordPress and "deactivation context" used in the tests.  
+### Other commands worth knowing
 
-The "deactivation context" means that installing the plugins in those specific versions, activating them in that specific order, will trigger a fatal error.
+Honestly, all of them are worth knowing. But here are a few important ones worth remembering:
 
-Follow through the steps detailed in the ["Debugging failed activation" section](#debugging-failed-activation) and fire up the interactive shell (using `sh dev/php-shell.sh`).
-
-Now use the `wp_cli` function to reproduce the issue:
-
-```php
-wp_cli(['plugin','deactivate','--all']);
-```
-
-When the issue pops up, update the code and test the fix again.
-
-### Opening a PR to fix the activation/deactivation issue
-
-When you find the fix for an issue open a PR on the repository where the issue lives and reference the line, in the build, where the issue shows up.  
-
-The link should look something like this: `https://github.com/moderntribe/products-test-automation/runs/500225977#step:7:1232`.
-
-### Using XDebug to debug activation and deactivation issues
-
-If you use, in your debug process, the `wordrpess_debug` container, then you will be able to use XDebug to debug the plugins code during activation and deactivation.  
-
-The wrapping functions are already setting up the environment to support this and you will only need to configure your IDE.  
-
-![PHPStorm IDE configuration](docs/images/activation-deactivation-debug-phpstorm-config.png)
-
-By default the `wordpress_debug` and the `cli` containers will call XDebug on port `9001` and setting up path mappings should be all you need to be up and running.
-
-> Note that you will only be able to debug the plugins code, those in the `dev/test/_plugin_store` directory, as WordPress code is not shared with the host machine.
+* `tric cli` – run WP CLI commands within the container stack.
+* `tric composer` – run composer commands against the current plugin target.
+* `tric debug` – activates/deactivates debug output.
+* `tric info` – displays current `tric` environment settings.
+* `tric npm` – run npm commands against the current plugin target.
+* `tric shell` – drop into bash in the containerized environment.
+* `tric xdebug [status|on|off]` – shows/sets xdebug status and info.
