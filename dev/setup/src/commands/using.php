@@ -12,26 +12,11 @@ if ( $is_help ) {
 	echo "Returns the current 'use' target.\n";
 	echo PHP_EOL;
 	echo colorize( "signature: <light_cyan>{$cli_name} using [<path>]</light_cyan>\n" );
-	echo colorize( "example: <light_cyan>{$cli_name} using </light_cyan>\n" );
-	echo colorize( "example: <light_cyan>{$cli_name} using \$(pwd)</light_cyan>\n" );
-	return;
-}
-
-$path         = args( [ 'path' ], $args( '...' ), 0 )( 'path', false );
-$current_path = tric_plugins_dir( tric_target() );
-
-if ( false !== $path ) {
-	// Are we using the path specified?
-	if ( $path === $current_path ) {
-		echo colorize( "<light_cyan>Yes, using:</light_cyan> {$path}" );
-	} else {
-		echo colorize( "<magenta>No, using:</magenta> {$current_path}" );
-	}
-
 	return;
 }
 
 $using = tric_target();
+$target_path = tric_plugins_dir( $using );
 if ( empty( $using ) ) {
 	echo magenta( "Currently not using any target, commands requiring a target will fail.\n" );
 	return;
@@ -40,5 +25,11 @@ if ( empty( $using ) ) {
 echo light_cyan( "Using {$using}\n" );
 
 if ( tric_plugins_dir() !== dev( 'plugins' ) ) {
-	echo light_cyan( "\nFull target path: " ) . $current_path;
+	echo light_cyan( "\nFull target path: " ) . $target_path;
+}
+
+if ( $target_path === getcwd() ) {
+	echo light_cyan( "\nThis directory is the current use target." );
+} else {
+	echo yellow( "\nThis directory is not the current use target." );
 }
