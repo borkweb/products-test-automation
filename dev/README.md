@@ -95,3 +95,8 @@ Honestly, all of them are worth knowing. But here are a few important ones worth
 * `tric npm` – run npm commands against the current plugin target.
 * `tric shell` – drop into bash in the containerized environment.
 * `tric xdebug [status|on|off]` – shows/sets xdebug status and info.
+
+## Activation/Deactivation Testing
+
+Beyond `tric`, this repo has some handy tools for [activation & deactivation testing](docs/activation-deactivation-testing.md).
+Definitely read over those docs for details on testing/debugging activation and deactivation issues.
