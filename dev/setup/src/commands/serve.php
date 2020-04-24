@@ -5,8 +5,8 @@ namespace Tribe\Test;
 if ( $is_help ) {
 	echo "Starts the stack and serves it on http://localhost\n";
 	echo PHP_EOL;
-	echo colorize( "usage: <light_cyan>${argv[0]} serve [<port>]</light_cyan>\n" );
-	echo colorize( "example: <light_cyan>${argv[0]} serve 8923</light_cyan>" );
+	echo colorize( "usage: <light_cyan>{$cli_name} serve [<port>]</light_cyan>\n" );
+	echo colorize( "example: <light_cyan>{$cli_name} serve 8923</light_cyan>" );
 	return;
 }
 

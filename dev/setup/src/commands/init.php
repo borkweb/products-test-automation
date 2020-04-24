@@ -11,9 +11,9 @@ namespace Tribe\Test;
 if ( $is_help ) {
 	echo "Initializes a plugin for use in tric.\n";
 	echo PHP_EOL;
-	echo colorize( "signature: <light_cyan>${argv[0]} init <plugin> [<branch>]</light_cyan>\n" );
-	echo colorize( "example: <light_cyan>${argv[0]} init the-events-calendar</light_cyan>\n" );
-	echo colorize( "example: <light_cyan>${argv[0]} init event-tickets release/B20.04</light_cyan>\n" );
+	echo colorize( "signature: <light_cyan>{$cli_name} init <plugin> [<branch>]</light_cyan>\n" );
+	echo colorize( "example: <light_cyan>{$cli_name} init the-events-calendar</light_cyan>\n" );
+	echo colorize( "example: <light_cyan>{$cli_name} init event-tickets release/B20.04</light_cyan>\n" );
 	return;
 }
 

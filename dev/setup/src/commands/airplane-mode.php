@@ -13,9 +13,9 @@ namespace Tribe\Test;
 if ( $is_help ) {
 	echo "Activates or deactivates the airplane-mode plugin.\n";
 	echo PHP_EOL;
-	echo colorize( "usage: <light_cyan>${argv[0]} airplane-mode (on|off) </light_cyan>\n" );
-	echo colorize( "example: <light_cyan>${argv[0]} airplane-mode on</light_cyan>\n" );
-	echo colorize( "example: <light_cyan>${argv[0]} airplane-mode off</light_cyan>\n" );
+	echo colorize( "usage: <light_cyan>{$cli_name} airplane-mode (on|off) </light_cyan>\n" );
+	echo colorize( "example: <light_cyan>{$cli_name} airplane-mode on</light_cyan>\n" );
+	echo colorize( "example: <light_cyan>{$cli_name} airplane-mode off</light_cyan>\n" );
 
 	return;
 }

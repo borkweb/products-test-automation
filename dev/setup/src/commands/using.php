@@ -11,11 +11,12 @@ namespace Tribe\Test;
 if ( $is_help ) {
 	echo "Returns the current 'use' target.\n";
 	echo PHP_EOL;
-	echo colorize( "signature: <light_cyan>${argv[0]} using <target>[/<subdir>]</light_cyan>\n" );
+	echo colorize( "signature: <light_cyan>{$cli_name} using</light_cyan>\n" );
 	return;
 }
 
 $using = tric_target();
+$target_path = tric_plugins_dir( $using );
 if ( empty( $using ) ) {
 	echo magenta( "Currently not using any target, commands requiring a target will fail.\n" );
 	return;
@@ -24,5 +25,11 @@ if ( empty( $using ) ) {
 echo light_cyan( "Using {$using}\n" );
 
 if ( tric_plugins_dir() !== dev( 'plugins' ) ) {
-	echo light_cyan( "\nFull target path: " ) . tric_plugins_dir( tric_target() );
+	echo light_cyan( "\nFull target path: " ) . $target_path;
+}
+
+if ( $target_path === getcwd() ) {
+	echo light_cyan( "\nThis directory is the current use target." );
+} else {
+	echo yellow( "\nThis directory is not the current use target." );
 }

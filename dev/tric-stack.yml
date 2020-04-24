@@ -9,6 +9,9 @@ networks:
       config:
         - subnet: "172.${TRIC_TEST_SUBNET:-28}.0.0/16"
 
+volumes:
+  function-mocker-cache:
+
 services:
 
   db:
@@ -147,6 +150,10 @@ services:
       - ./_wordpress:/var/www/html
       # Share the plugins in the `/var/www/hmtl/wp-content/plugins` directory.
       - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins
+      # In some plugins we use function-mocker and set it up to cache in `/tmp/function-mocker`.
+      # To avoid a long re-caching on each run, let's cache in a docker volume, caching on the host
+      # filesystem would be a worse cure than the disease.
+      - function-mocker-cache:/tmp/function-mocker
 
   composer:
     image: lucatume/composer:php7.2
