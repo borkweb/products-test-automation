@@ -11,7 +11,7 @@ namespace Tribe\Test;
 if ( $is_help ) {
 	echo "Returns the current 'use' target.\n";
 	echo PHP_EOL;
-	echo colorize( "signature: <light_cyan>{$cli_name} using [<path>]</light_cyan>\n" );
+	echo colorize( "signature: <light_cyan>{$cli_name} using</light_cyan>\n" );
 	return;
 }
 
