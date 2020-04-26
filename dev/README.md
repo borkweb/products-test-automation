@@ -27,6 +27,8 @@ cd /path/to/your/wp-content/plugins
 tric here
 ```
 
+![tric here](docs/images/tric-here.gif)
+
 ### Initializing a Plugin
 
 With your desired plugin containing directory set, you will need to initialize plugins so that they are prepped and ready
@@ -37,6 +39,8 @@ Example:
 ```bash
 tric init event-tickets
 ```
+
+![tric init](docs/images/tric-init.gif)
 
 What this command does:
 
