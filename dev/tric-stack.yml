@@ -70,9 +70,9 @@ services:
     volumes:
       # Paths are relative to the directory that contains this file, NOT the current working directory.
       # Share the WordPress core installation files in the `dev/_wordpress` directory.
-      - ./_wordpress:/var/www/html
+      - ./_wordpress:/var/www/html:cached
       # Share the WordPress core installation files in the `dev/_plugins` directory.
-      - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins
+      - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins:cached
 
   cli:
     image: wordpress:cli
@@ -93,9 +93,9 @@ services:
     volumes:
       # Paths are relative to the directory that contains this file, NOT the current working directory.
       # Share the WordPress core installation files in the `dev/_wordpress` directory.
-      - ./_wordpress:/var/www/html
+      - ./_wordpress:/var/www/html:cached
       # Share the WordPress core installation files in the `dev/_plugins` directory.
-      - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins
+      - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins:cached
 
   site_waiter:
     # Waits for the WordPress site to be available.
@@ -147,9 +147,9 @@ services:
     volumes:
       # Paths are relative to the directory that contains this file, NOT the current working directory.
       # Share the WordPress core installation files in the `dev/_wordpress` directory.
-      - ./_wordpress:/var/www/html
+      - ./_wordpress:/var/www/html:cached
       # Share the plugins in the `/var/www/hmtl/wp-content/plugins` directory.
-      - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins
+      - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins:cached
       # In some plugins we use function-mocker and set it up to cache in `/tmp/function-mocker`.
       # To avoid a long re-caching on each run, let's cache in a docker volume, caching on the host
       # filesystem would be a worse cure than the disease.
@@ -162,9 +162,9 @@ services:
       FIXUID: "${FIXUID:-1}"
     volumes:
       # Set the current plugin as project.
-      - ${TRIC_PLUGINS_DIR}/${TRIC_CURRENT_PROJECT:-test}:/project
+      - ${TRIC_PLUGINS_DIR}/${TRIC_CURRENT_PROJECT:-test}:/project:cached
       # Share SSH keys with the container to pull from private repositories.
-      - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent
+      - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent:ro
 
   npm:
     build:
@@ -175,9 +175,9 @@ services:
       FIXUID: ${FIXUID:-1}
     volumes:
       # Set the current plugin as project.
-      - ${TRIC_PLUGINS_DIR}/${TRIC_CURRENT_PROJECT:-test}:/project
+      - ${TRIC_PLUGINS_DIR}/${TRIC_CURRENT_PROJECT:-test}:/project:cached
       # Share SSH keys with the container to pull from private repositories.
-      - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent
+      - ${DOCKER_RUN_SSH_AUTH_SOCK}:/ssh-agent:ro
 
   adminer:
     image: adminer
