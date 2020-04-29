@@ -59,7 +59,7 @@ function docker_compose( array $options = [] ) {
 
 		if ( ! empty( $is_ci ) ) {
 			// Disable XDebug in CI context to speed up the builds.
-			$command = 'XDE=0 ' . $command;
+			$command = 'XDE=0 XDEBUG_DISABLE=1 ' . $command;
 		}
 
 		return process( $command );
