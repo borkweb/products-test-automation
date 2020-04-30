@@ -29,7 +29,7 @@ setup_id();
 check_status_or(
 	tric_process()( cli_command( [ 'plugin', 'is-installed', 'airplane-mode' ] ) ),
 	static function () {
-		process_realtime( 'git clone https://github.com/norcross/airplane-mode ' . tric_plugins_dir() );
+		process_realtime( 'git clone https://github.com/norcross/airplane-mode ' . tric_plugins_dir( 'airplane-mode' ) );
 	}
 );
 
