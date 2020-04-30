@@ -156,7 +156,7 @@ services:
       - function-mocker-cache:/tmp/function-mocker
 
   composer:
-    image: lucatume/composer:php7.2
+    image: lucatume/composer:php7.0
     user: "${DOCKER_RUN_UID:-}:${DOCKER_RUN_GID:-}"
     environment:
       FIXUID: "${FIXUID:-1}"
