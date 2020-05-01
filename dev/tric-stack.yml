@@ -23,10 +23,13 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
 
   wordpress:
-    image: wordpress:latest
+    build:
+      context: test/_containers/wordpress_debug
+      args:
+        WORDPRESS_BASE_CONTAINER: 'wordpress:latest'
     networks:
       tric:
-        # Allow the other conatiners to read this container with a pretty URL.
+        # Allow the other containers to read this container with a pretty URL.
         ipv4_address: 172.${TRIC_TEST_SUBNET:-28}.1.1
     extra_hosts:
       # Let's make sure the WordPress service can reach itself with a pretty URL for internal requests.
@@ -46,7 +49,6 @@ services:
       # The port, in the container, is not the default `80` to allow non root users to bind (listen) to it.
       - "${WORDPRESS_HTTP_PORT:-8888}:80"
     environment:
-      FIXUID: "${FIXUID:-1}"
       WORDPRESS_DB_USER: root
       WORDPRESS_DB_PASSWORD: password
       # This db is created by the db container at startup, no need to create it.
@@ -67,10 +69,12 @@ services:
       # On Linux set the host machine IP address before calling the stack:
       # XDH=$(ip route | grep docker0 | awk '{print $9}') docker-compose ...
       XDEBUG_CONFIG: "idekey=${XDK:-tric} remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
+      # Whether to disable the XDebug extension in the Codeception container completely or not.
+      XDEBUG_DISABLE: "${XDEBUG_DISABLE:-0}"
     volumes:
       # Paths are relative to the directory that contains this file, NOT the current working directory.
       # Share the WordPress core installation files in the `dev/_wordpress` directory.
-      - ./_wordpress:/var/www/html:cached
+      - ${TRIC_WP_DIR}:/var/www/html:cached
       # Share the WordPress core installation files in the `dev/_plugins` directory.
       - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins:cached
 
@@ -93,7 +97,7 @@ services:
     volumes:
       # Paths are relative to the directory that contains this file, NOT the current working directory.
       # Share the WordPress core installation files in the `dev/_wordpress` directory.
-      - ./_wordpress:/var/www/html:cached
+      - ${TRIC_WP_DIR}:/var/www/html:cached
       # Share the WordPress core installation files in the `dev/_plugins` directory.
       - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins:cached
 
@@ -104,7 +108,7 @@ services:
       - tric
     extra_hosts:
       - "wordpress.test:172.${TRIC_TEST_SUBNET:-28}.1.1"
-    command: -Lkfv --retry-connrefused --retry 15 --retry-delay 2 -o /dev/null --stderr /dev/null wordpress.test:80
+    command: -Lkfv --retry-connrefused --retry 30 --retry-delay 1 -o /dev/null --stderr /dev/null wordpress.test:80
 
   chrome:
     image: selenium/standalone-chrome:3.141.59-oxygen
@@ -147,7 +151,7 @@ services:
     volumes:
       # Paths are relative to the directory that contains this file, NOT the current working directory.
       # Share the WordPress core installation files in the `dev/_wordpress` directory.
-      - ./_wordpress:/var/www/html:cached
+      - ${TRIC_WP_DIR}:/var/www/html:cached
       # Share the plugins in the `/var/www/hmtl/wp-content/plugins` directory.
       - ${TRIC_PLUGINS_DIR}:/var/www/html/wp-content/plugins:cached
       # In some plugins we use function-mocker and set it up to cache in `/tmp/function-mocker`.

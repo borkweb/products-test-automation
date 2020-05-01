@@ -55,6 +55,23 @@ function setup_tric_env( $root_dir ) {
 		load_env_file( $root_dir . '/.env.tric.run' );
 	}
 
+	$wp_dir = getenv( 'TRIC_WP_DIR' );
+	if ( empty( $wp_dir ) ) {
+		$wp_dir = dev( '_wordpress' );
+	} elseif ( ! is_dir( $wp_dir ) ) {
+		$wp_dir = realpath( dev( ltrim( $wp_dir, './' ) ) );
+	}
+
+	$plugins_dir = getenv( 'TRIC_PLUGINS_DIR' );
+	if ( empty( $plugins_dir ) ) {
+		$plugins_dir = dev( '_plugins' );
+	} elseif ( ! is_dir( $plugins_dir ) ) {
+		$plugins_dir = realpath( dev( ltrim( $plugins_dir, './' ) ) );
+	}
+
+	putenv( 'TRIC_WP_DIR=' . $wp_dir );
+	putenv( 'TRIC_PLUGINS_DIR=' . $plugins_dir );
+
 	// Most commands are nested shells that should not run with a time limit.
 	remove_time_limit();
 }
@@ -108,10 +125,13 @@ function php_services() {
 
 /**
  * Restart the stack PHP services.
+ *
+ * @param bool $hard Whether to restart the PHP services using the `docker-compose restart` command or by using a
+ *                   tear-down and up again cycle.
  */
-function restart_php_services() {
+function restart_php_services( $hard = false ) {
 	foreach ( php_services() as $service => $pretty_name ) {
-		restart_service( $service, $pretty_name );
+		restart_service( $service, $pretty_name, $hard );
 	}
 }
 
@@ -120,8 +140,10 @@ function restart_php_services() {
  *
  * @param string      $service     The name of the service to restart, e.g. `wordpress`.
  * @param string|null $pretty_name The pretty name to use for the service, or `null` to use the service name.
+ * @param bool $hard Whether to restart the service using the `docker-compose restart` command or to use full tear-down
+ *                   and up again cycle.
  */
-function restart_service( $service, $pretty_name = null ) {
+function restart_service( $service, $pretty_name = null, $hard = false ) {
 	$pretty_name   = $pretty_name ?: $service;
 	$tric          = docker_compose( [ '-f', '"' . stack() . '"' ] );
 	$tric_realtime = docker_compose_realtime( [ '-f', '"' . stack() . '"' ] );
@@ -129,7 +151,12 @@ function restart_service( $service, $pretty_name = null ) {
 	$service_running = $tric( [ 'ps', '-q', $service ] )( 'string_output' );
 	if ( ! empty( $service_running ) ) {
 		echo colorize( "Restarting {$pretty_name} service...\n" );
-		$tric_realtime( [ 'restart', $service ] );
+		if ( $hard ) {
+			$tric_realtime( [ 'rm', '--stop', '--force', $service ] );
+			$tric_realtime( [ 'up', '-d', $service ] );
+		} else {
+			$tric_realtime( [ 'restart', $service ] );
+		}
 		echo colorize( "<light_cyan>{$pretty_name} service restarted.</light_cyan>\n" );
 	} else {
 		echo colorize( "{$pretty_name} service was not running.\n" );
@@ -478,7 +505,8 @@ function tric_handle_xdebug( callable $args ) {
 		return;
 	}
 
-	write_env_file( $run_settings_file, [ 'XDE' => $value, 'XDEBUG_DISABLE' => empty( $value ) ? 1 : 0 ], true );
+	$xdebug_env_vars = [ 'XDE' => $value, 'XDEBUG_DISABLE' => 1 === $value ? 0 : 1 ];
+	write_env_file( $run_settings_file, $xdebug_env_vars, true );
 
 	echo "\n\n";
 
@@ -487,7 +515,11 @@ function tric_handle_xdebug( callable $args ) {
 		'yes'
 	);
 	if ( $restart_services ) {
-		restart_php_services();
+		foreach ( $xdebug_env_vars as $key => $value ) {
+			putenv( "{$key}={$value}" );
+		}
+		// Call for a hard restart to make sure the web-server will restart its php-fpm connection.
+		restart_php_services( true );
 	} else {
 		echo colorize(
 			"\n\nTear down the stack with <light_cyan>down</light_cyan> and restar it to apply the new settings!\n"
