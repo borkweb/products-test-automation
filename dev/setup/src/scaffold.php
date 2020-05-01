@@ -15,25 +15,93 @@ namespace Tribe\Test;
 function write_tric_env_file( $plugin_path ) {
 	$mysql_root_password = getenv( 'MYSQL_ROOT_PASSWORD' );
 	$wp_http_port        = getenv( 'WORDPRESS_HTTP_PORT');
-	$plugin_env          = file_get_contents( $plugin_path . '/.env' );
+
+	if ( file_exists( $plugin_path . '/.env.testing' ) ) {
+		$plugin_env = file_get_contents( $plugin_path . '/.env.testing' );
+	} else {
+		$plugin_env = file_get_contents( $plugin_path . '/.env' );
+	}
+
 	$wp_domain = 'wordpress.test';
 
-	$strings   = [
-		'/WP_ROOT_FOLDER=.*/'      => 'WP_ROOT_FOLDER=/var/www/html',
-		'/WP_URL=.*/'              => 'WP_URL=http://' . $wp_domain,
-		'/WP_DOMAIN=.*/'           => 'WP_DOMAIN=' . $wp_domain,
-		'/WP_DB_PORT=.*/'          => 'WP_DB_PORT=3306',
-		'/WP_DB_HOST=.*/'          => 'WP_DB_HOST=db',
-		'/WP_DB_NAME=.*/'          => 'WP_DB_NAME=test',
-		'/WP_DB_PASSWORD=.*/'      => 'WP_DB_PASSWORD=' . $mysql_root_password,
-		'/WP_TEST_DB_HOST=.*/'     => 'WP_TEST_DB_HOST=db',
-		'/WP_TEST_DB_NAME=.*/'     => 'WP_TEST_DB_NAME=test',
-		'/WP_TEST_DB_PASSWORD=.*/' => 'WP_TEST_DB_PASSWORD=' . $mysql_root_password,
-		'/CHROMEDRIVER_HOST=.*/'   => 'CHROMEDRIVER_HOST=chrome',
-		'/WP_CHROMEDRIVER_URL=.*/' => 'WP_CHROMEDRIVER_URL="wordpress.test"',
+	$replace = [];
+
+	$replace['wp_root_folder'] = [
+		'env' => [
+			'WP_ROOT_FOLDER',
+		],
+		'value' => '/var/www/html',
 	];
 
-	$plugin_env = preg_replace( array_keys( $strings ), $strings, $plugin_env );
+	$replace['wp_url'] = [
+		'env' => [
+			'WP_URL',
+			'TEST_SITE_WP_URL',
+			'WP_CHROMEDRIVER_URL',
+		],
+		'value' => 'http://' . $wp_domain,
+	];
+
+	$replace['wp_domain'] = [
+		'env' => [
+			'WP_DOMAIN',
+			'TEST_SITE_WP_DOMAIN',
+		],
+		'value' => $wp_domain,
+	];
+
+	$replace['wp_db_port'] = [
+		'env' => [
+			'WP_DB_PORT',
+			'TEST_DB_PORT',
+			'TEST_SITE_DB_PORT',
+		],
+		'value' => 3306,
+	];
+
+	$replace['wp_db_host'] = [
+		'env' => [
+			'WP_DB_HOST',
+			'WP_TEST_DB_HOST',
+			'TEST_DB_HOST',
+			'TEST_SITE_DB_HOST',
+		],
+		'value' => 'db',
+	];
+
+	$replace['wp_db_name'] = [
+		'env' => [
+			'WP_DB_NAME',
+			'WP_TEST_DB_NAME',
+			'TEST_DB_NAME',
+			'TEST_SITE_DB_NAME',
+		],
+		'value' => 'test',
+	];
+
+	$replace['wp_db_password'] = [
+		'env' => [
+			'WP_DB_PASSWORD',
+			'WP_TEST_DB_PASSWORD',
+			'TEST_DB_PASSWORD',
+			'TEST_SITE_DB_PASSWORD',
+		],
+		'value' => $mysql_root_password,
+	];
+
+	$replace['chromedriver_host'] = [
+		'env' => [
+			'CHROMEDRIVER_HOST',
+		],
+		'value' => 'chrome',
+	];
+
+	foreach ( $replace as $env_strings ) {
+		foreach ( $env_strings['env'] as $find ) {
+			$plugin_env = preg_replace( "/{$find}=.*/", "{$find}={$env_strings['value']}", $plugin_env );
+		}
+	}
+
 	$plugin_env .= "\n# We're using Docker to run the tests.\nUSING_CONTAINERS=1\n";
 
 	$file = $plugin_path . '/.env.testing.tric';
