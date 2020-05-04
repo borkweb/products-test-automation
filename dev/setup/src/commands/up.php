@@ -10,5 +10,7 @@ if ( $is_help ) {
 	return;
 }
 
-$service       = args( [ 'service' ], $args( '...' ), 0 )( 'service', 'wordpress' );
-tric_realtime()( [ 'up', '-d', $service ] );
+$service = args( [ 'service' ], $args( '...' ), 0 )( 'service', 'wordpress' );
+$status  = tric_realtime()( [ 'up', '-d', $service ] );
+
+exit( $status );

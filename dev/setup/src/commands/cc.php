@@ -16,4 +16,6 @@ echo light_cyan( "Using {$using}\n" );
 
 setup_id();
 // Run the command in the Codeception container, exit the same status as the process.
-$status        = tric_realtime()( array_merge( [ 'run', '--rm', 'codeception' ], $args( '...' ) ) );
+$status = tric_realtime()( array_merge( [ 'run', '--rm', 'codeception' ], $args( '...' ) ) );
+
+exit( $status );
