@@ -383,6 +383,40 @@ function tric_wp_dir( $path = '' ) {
 }
 
 /**
+ * Prints the current build-prompt status to screen.
+ */
+function build_prompt_status() {
+	$enabled = getenv( 'TRIC_INTERACTIVE' );
+
+	echo 'Interactive status is: ' . ( $enabled ? light_cyan( 'on' ) : magenta( 'off' ) ) . PHP_EOL;
+}
+
+/**
+ * Handles the build-prompt command request.
+ *
+ * @param callable $args The closure that will produce the current interactive request arguments.
+ */
+function tric_handle_build_prompt( callable $args ) {
+	$run_settings_file = dev( '/.env.tric.run' );
+	$toggle            = $args( 'toggle', 'on' );
+
+	if ( 'status' === $toggle ) {
+		build_prompt_status();
+
+		return;
+	}
+
+	$value = 'on' === $toggle ? 1 : 0;
+	echo 'Build Prompt status: ' . ( $value ? light_cyan( 'on' ) : magenta( 'off' ) );
+
+	if ( $value === (int) getenv( 'TRIC_BUILD_PROMPT' ) ) {
+		return;
+	}
+
+	write_env_file( $run_settings_file, [ 'TRIC_BUILD_PROMPT' => $value ], true );
+}
+
+/**
  * Prints the current interactive status to screen.
  */
 function interactive_status() {
