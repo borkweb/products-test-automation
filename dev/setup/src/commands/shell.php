@@ -21,3 +21,5 @@ setup_id();
 // Run the command in the Codeception container, exit the same status as the process.
 $shell_args    = array_merge( [ 'run', '--rm', '--entrypoint', 'bash', $service ], $service_args( '...' ) );
 $status        = tric_realtime()( $shell_args );
+
+exit( $status );

@@ -13,4 +13,6 @@ if ( $is_help ) {
 setup_id();
 // Runs a wp-cli command in the stack, using the `cli` service.
 $command = $args( '...' );
-tric_realtime()( cli_command( $command ) );
+$status  = tric_realtime()( cli_command( $command ) );
+
+exit( $status );

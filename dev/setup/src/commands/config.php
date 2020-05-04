@@ -11,4 +11,6 @@ if ( $is_help ) {
 
 $using = tric_target();
 setup_id();
-tric_realtime()( [ 'config' ] );
+$status = tric_realtime()( [ 'config' ] );
+
+exit( $status );
