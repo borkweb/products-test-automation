@@ -59,6 +59,7 @@ Available commands:
 <light_cyan>update</light_cyan>         Updates the tool and the images used in its services.
 
 <yellow>Info:</yellow>
+<light_cyan>build-prompt</light_cyan>   Activates or deactivates whether or not composer/npm build prompts should be provided.
 <light_cyan>config</light_cyan>         Prints the stack configuration as interpolated from the environment.
 <light_cyan>debug</light_cyan>          Activates or deactivates {$cli_name} debug output or returns the current debug status.
 <light_cyan>help</light_cyan>           Displays this help message.
@@ -92,6 +93,7 @@ switch ( $subcommand ) {
 		break;
 	case 'airplane-mode':
 	case 'build':
+	case 'build-prompt':
 	case 'cc':
 	case 'cli':
 	case 'composer':
