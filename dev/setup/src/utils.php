@@ -366,11 +366,12 @@ function is_tric() {
  * @return string The current run context, one of `ci`, `tric` or `default`.
  */
 function run_context() {
-	if ( is_ci() ) {
-		return 'ci';
-	}
 	if ( is_tric() ) {
 		return 'tric';
+	}
+
+	if ( is_ci() ) {
+		return 'ci';
 	}
 
 	return 'default';
