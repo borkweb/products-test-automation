@@ -19,7 +19,7 @@ services:
     networks:
       - tric
     environment:
-      # The `test` database is always present, no need to create it.
+      MYSQL_DATABASE: test
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
 
   wordpress:
