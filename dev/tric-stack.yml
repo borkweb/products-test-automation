@@ -23,10 +23,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
 
   wordpress:
-    build:
-      context: test/_containers/wordpress_debug
-      args:
-        WORDPRESS_BASE_CONTAINER: 'wordpress:latest'
+    # Fix the version of the WordPress image to avoid issues w/ out-of-date database dumps.
+    image: wordpress:5.4.1-apache
     networks:
       tric:
         # Allow the other containers to read this container with a pretty URL.
