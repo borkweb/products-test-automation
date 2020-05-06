@@ -307,18 +307,16 @@ function the_fatality() {
  *                an empty string to indicate the host machine IP address could not be obtained.
  */
 function host_ip( $os = 'Linux' ) {
-	switch ( $os ) {
-		case 'Linux':
-			$command = "ip route | grep docker0 | cut -f9 -d' '";
-			exec( $command, $output, $status );
-			if ( 0 !== (int) $status ) {
-				echo magenta( "Cannot get the host machine IP address using '${command}'\n" );
-				exit( 1 );
-			}
-			$host_ip = trim( $output[0] );
-			break;
-		default:
-			$host_ip = 'host.docker.internal';
+	if ( $os === 'Linux' ) {
+		$command = "ip route | grep docker0 | cut -f9 -d' '";
+		exec( $command, $output, $status );
+		if ( 0 !== (int) $status ) {
+			echo magenta( "Cannot get the host machine IP address using '${command}'\n" );
+			exit( 1 );
+		}
+		$host_ip = trim( $output[0] );
+	} else {
+		$host_ip = 'host.docker.internal';
 	}
 
 	return $host_ip;
