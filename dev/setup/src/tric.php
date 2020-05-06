@@ -59,14 +59,34 @@ function setup_tric_env( $root_dir ) {
 	if ( empty( $wp_dir ) ) {
 		$wp_dir = dev( '_wordpress' );
 	} elseif ( ! is_dir( $wp_dir ) ) {
-		$wp_dir = realpath( dev( ltrim( $wp_dir, './' ) ) );
+		$wp_dir_path = dev( ltrim( $wp_dir, './' ) );
+
+		if ( ! is_dir( $wp_dir_path ) && ! mkdir( $wp_dir_path ) && ! is_dir( $wp_dir_path ) ) {
+			// If the WordPress directory does not exist, then create it now.
+			echo magenta( "Cannot create the {$wp_dir_path} directory" );
+			exit( 1 );
+		}
+
+		$wp_dir = realpath( $wp_dir_path );
+	}
+
+	// Whatever the case, the WordPress directory should now exist.
+	if ( ! is_dir( $wp_dir ) ) {
+		echo magenta( "The WordPress directory ({$wp_dir}) does not exist." );
+		exit( 1 );
 	}
 
 	$plugins_dir = getenv( 'TRIC_PLUGINS_DIR' );
 	if ( empty( $plugins_dir ) ) {
 		$plugins_dir = dev( '_plugins' );
 	} elseif ( ! is_dir( $plugins_dir ) ) {
-		$plugins_dir = realpath( dev( ltrim( $plugins_dir, './' ) ) );
+		$plugin_dir_path = dev( ltrim( $plugins_dir, './' ) );
+
+		if ( ! is_dir( $plugin_dir_path ) && ! mkdir( $plugin_dir_path ) && ! is_dir( $plugin_dir_path ) ) {
+			echo magenta( "Cannot create the {$plugin_dir_path} directory." );
+			exit( 1 );
+		}
+		$plugins_dir = realpath( $plugin_dir_path );
 	}
 
 	putenv( 'TRIC_WP_DIR=' . $wp_dir );

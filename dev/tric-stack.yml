@@ -19,14 +19,12 @@ services:
     networks:
       - tric
     environment:
-      # The `test` database is always present, no need to create it.
+      MYSQL_DATABASE: test
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
 
   wordpress:
-    build:
-      context: test/_containers/wordpress_debug
-      args:
-        WORDPRESS_BASE_CONTAINER: 'wordpress:latest'
+    # Fix the version of the WordPress image to avoid issues w/ out-of-date database dumps.
+    image: wordpress:5.4.1-apache
     networks:
       tric:
         # Allow the other containers to read this container with a pretty URL.
@@ -145,6 +143,8 @@ services:
       CODECEPTION_PROJECT_DIR: /var/www/html/wp-content/plugins/${TRIC_CURRENT_PROJECT:-test}
       # Whether to disable the XDebug extension in the Codeception container completely or not.
       XDEBUG_DISABLE: "${XDEBUG_DISABLE:-0}"
+      # After the WordPress container comes online, wait a further 3s to give it some boot-up time.
+      CODECEPTION_WAIT: 3
     depends_on:
       - wordpress
       - chrome
