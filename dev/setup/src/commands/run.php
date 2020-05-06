@@ -74,4 +74,6 @@ switch ( $available_configs_mask ) {
 $run_configuration = array_merge( [ 'run', '--rm', 'codeception', 'run' ], $config_files );
 
 // Finally run the command.
-tric_realtime()( array_merge( $run_configuration, $args( '...' ) ) );
+$status = tric_realtime()( array_merge( $run_configuration, $args( '...' ) ) );
+
+exit( $status );

@@ -9,4 +9,6 @@ if ( $is_help ) {
 	return;
 }
 
-tric_realtime()( [ 'down', '--volumes', '--remove-orphans' ] );
+$status = tric_realtime()( [ 'down', '--volumes', '--remove-orphans' ] );
+
+exit( $status );

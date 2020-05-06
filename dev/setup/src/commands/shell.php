@@ -26,4 +26,7 @@ if ( 'codeception' === $service ) {
 	$shell_args = array_merge( [ 'run', '--rm', '--entrypoint', 'bash', $service ], $service_args( '...' ) );
 }
 
+// Run the command in the container, exit the same status as the process.
 $status = tric_realtime()( $shell_args );
+
+exit( $status );

@@ -16,7 +16,12 @@ echo light_cyan( "Using {$using}\n" );
 
 setup_id();
 $npm_command   = $args( '...' );
-tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
+$status = tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
+
+// If there is a status other than 0, we have an error. Bail.
+if ( $status ) {
+	exit( $status );
+}
 
 if ( ! file_exists( tric_plugins_dir( "{$using}/common" ) ) ) {
 	return;
@@ -27,9 +32,11 @@ if ( ask( "\nWould you like to run that npm command against common?", 'yes' ) ) 
 
 	echo light_cyan( "Temporarily using " . tric_target() . "\n" );
 
-	tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
+	$status = tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $npm_command ) );
 
 	tric_switch_target( $using );
 
 	echo light_cyan( "Using " . tric_target() ." once again\n" );
 }
+
+exit( $status );

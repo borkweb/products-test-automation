@@ -16,5 +16,7 @@ $service      = $service_args( 'service', '' );
 
 setup_id();
 // Run the command in the Codeception container, exit the same status as the process.
-$shell_args    = array_merge( [ 'build', $service ], $service_args( '...' ) );
-$status        = tric_realtime()( $shell_args );
+$shell_args = array_merge( [ 'build', $service ], $service_args( '...' ) );
+$status     = tric_realtime()( $shell_args );
+
+exit( $status );
