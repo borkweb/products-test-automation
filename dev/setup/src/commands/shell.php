@@ -18,8 +18,15 @@ $using = tric_target();
 echo light_cyan( "Using {$using}\n" );
 
 setup_id();
-// Run the command in the Codeception container, exit the same status as the process.
-$shell_args    = array_merge( [ 'run', '--rm', '--entrypoint', 'bash', $service ], $service_args( '...' ) );
-$status        = tric_realtime()( $shell_args );
+
+if ( 'codeception' === $service ) {
+	// If the shell is for the `codeception` container, then use its built-in shell support.
+	$shell_args = array_merge( [ 'run', '--rm', $service, 'bash' ], $service_args( '...' ) );
+} else {
+	$shell_args = array_merge( [ 'run', '--rm', '--entrypoint', 'bash', $service ], $service_args( '...' ) );
+}
+
+// Run the command in the container, exit the same status as the process.
+$status = tric_realtime()( $shell_args );
 
 exit( $status );
