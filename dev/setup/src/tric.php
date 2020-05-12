@@ -818,32 +818,3 @@ function switch_plugin_branch( $branch, $plugin = null ) {
 		exit( 1 );
 	}
 }
-
-function cache_plugin_installed() {
-	$installed = true;
-
-	check_status_or(
-		tric_process()( cli_command( [ 'plugin', 'is-installed', 'airplane-mode' ] ) ),
-		static function () use ( &$installed ) {
-			$installed = false;
-		}
-	);
-
-	return $installed;
-}
-
-function cache_plugin_activated(){
-	if(!cache_plugin_installed()){
-		return false;
-	}
-	tric_realtime()(['cli','redis','status']);
-}
-
-function install_cache_plugin(){
-	check_status_or(
-		tric_process()( cli_command( [ 'plugin', 'is-installed', 'airplane-mode' ] ) ),
-		static function () use ( &$installed ) {
-			$installed = false;
-		}
-	);
-}
