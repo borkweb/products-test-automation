@@ -62,7 +62,7 @@ function setup_tric_env( $root_dir ) {
 		$wp_dir_path = dev( ltrim( $wp_dir, './' ) );
 
 		if (
-			is_dir( basename( $wp_dir_path ) )
+			is_dir( dirname( $wp_dir_path ) )
 			&& ! is_dir( $wp_dir_path )
 			&& ! mkdir( $wp_dir_path )
 			&& ! is_dir( $wp_dir_path )
