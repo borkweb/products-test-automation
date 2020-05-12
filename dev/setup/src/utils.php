@@ -493,7 +493,9 @@ function ask( $question, $default = null ) {
 	if ( empty( $is_interactive ) ) {
 		$value = $default;
 	} else {
-		$value = readline( $prompt . ' ' );
+		// Using echo rather than the parameter for the readline() for prompting due to a terminal window incompatibility.
+		echo $prompt;
+		$value = readline();
 	}
 
 	if ( $is_boolean ) {
