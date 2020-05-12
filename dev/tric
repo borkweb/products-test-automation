@@ -48,8 +48,9 @@ Available commands:
 <light_cyan>init</light_cyan>           Initializes a plugin for use in tric.
 <light_cyan>composer</light_cyan>       Runs a Composer command in the stack.
 <light_cyan>npm</light_cyan>            Runs an npm command in the stack.
-<light_cyan>xdebug</light_cyan>         Activates and deactivated XDebug in the stack, returns the current XDebug status or sets its values.
+<light_cyan>xdebug</light_cyan>         Activates and deactivates XDebug in the stack, returns the current XDebug status or sets its values.
 <light_cyan>airplane-mode</light_cyan>  Activates or deactivates the airplane-mode plugin.
+<light_cyan>cache</light_cyan>          Activates and deactivates object cache support, returns the current object cache status.
 
 <yellow>Advanced Usage:</yellow>
 <light_cyan>cc</light_cyan>             Runs a Codeception command in the stack, the equivalent of <light_cyan>'codecept ...'</light_cyan>.
@@ -94,6 +95,7 @@ switch ( $subcommand ) {
 	case 'airplane-mode':
 	case 'build':
 	case 'build-prompt':
+	case 'cache':
 	case 'cc':
 	case 'cli':
 	case 'composer':

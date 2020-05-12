@@ -34,6 +34,7 @@ services:
       - "wordpress.test:172.${TRIC_TEST_SUBNET:-28}.1.1"
     depends_on:
       - db
+      - redis
     # Run the container as the host user and group.
     # Apache will run as the same user and permission issues with WordPress generated files should not arise.
     user: "${DOCKER_RUN_UID:-}:${DOCKER_RUN_GID:-}"
@@ -58,6 +59,8 @@ services:
         $$url    = isset( $$_SERVER['HTTP_HOST'] ) ? $$_SERVER['HTTP_HOST'] : 'wordpress.test';
         define( 'WP_HOME', $$scheme . '://' . $$url );
         define( 'WP_SITEURL', $$scheme . '://' . $$url );
+        define( 'WP_REDIS_HOST', 'redis' );
+        define( 'WP_REDIS_PORT', 6379 );
       # Configure this to debug the tests with XDebug.
       # Map the `dev/_wordpress` directory to `/var/www/html' directory in your IDE of choice.
       # Map the `dev/_plugins` directory to `/plugins` directory in your IDE of choice.
@@ -191,3 +194,20 @@ services:
       ADMINER_DEFAULT_SERVER: db
     ports:
       - "9080:8080"
+
+  redis:
+    image: redis
+    networks:
+      tric:
+    ports:
+      # Expose Redis port on port 8379 of localhost.
+      - "8379:6379"
+
+  redis-cli:
+    image: redis
+    networks:
+      tric:
+    depends_on:
+      - redis
+    entrypoint: ["redis-cli","-h redis","-p 6379"]
+    command: ["--version"]
