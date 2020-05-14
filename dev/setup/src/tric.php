@@ -678,7 +678,7 @@ function tric_run_npm_command( array $command ) {
 
 		tric_realtime()( array_merge( [ 'run', '--rm', 'npm' ], $command ) );
 
-		Tribe\Test\tric_switch_target( $using );
+		tric_switch_target( $using );
 
 		echo light_cyan( "Using " . tric_target() . " once again\n" );
 	}
