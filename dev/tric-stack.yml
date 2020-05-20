@@ -152,6 +152,9 @@ services:
       XDEBUG_DISABLE: "${XDEBUG_DISABLE:-0}"
       # Declare that we are in a tric context so plugins can set custom test configs.
       TRIBE_TRIC: 1
+      # Let's set the lines and columns number explicitly to have the shell mirror the current one.
+      LINES: "${LINES:-24}"
+      COLUMNS: "${COLUMNS:-80}"
     depends_on:
       - wordpress
       - chrome
