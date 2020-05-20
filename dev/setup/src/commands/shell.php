@@ -21,9 +21,9 @@ setup_id();
 
 if ( 'codeception' === $service ) {
 	// If the shell is for the `codeception` container, then use its built-in shell support.
-	$shell_args = array_merge( [ 'run', '--rm', $service, 'bash' ], $service_args( '...' ) );
+	$shell_args = array_merge( [ 'run', '--rm', $service, 'shell' ], $service_args( '...' ) );
 } else {
-	$shell_args = array_merge( [ 'run', '--rm', '--entrypoint', 'bash', $service ], $service_args( '...' ) );
+	$shell_args = array_merge( [ 'run', '--rm', '--entrypoint', 'shell', $service ], $service_args( '...' ) );
 }
 
 // Run the command in the container, exit the same status as the process.

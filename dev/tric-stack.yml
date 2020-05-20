@@ -144,12 +144,17 @@ services:
       XDEBUG_CONFIG: "idekey=${XDK:-tric} remote_enable=${XDE:-1} remote_host=${XDH:-host.docker.internal} remote_port=${XDP:-9001}"
       # Move to the target directory before running the command from the plugins directory.
       CODECEPTION_PROJECT_DIR: /var/www/html/wp-content/plugins/${TRIC_CURRENT_PROJECT:-test}
-      # Whether to disable the XDebug extension in the Codeception container completely or not.
-      XDEBUG_DISABLE: "${XDEBUG_DISABLE:-0}"
+      # When running the container in shell mode (using the tric `shell` command), then use this CC configuration.
+      CODECEPTION_SHELL_CONFIG: "-c codeception.tric.yml"
       # After the WordPress container comes online, wait a further 3s to give it some boot-up time.
       CODECEPTION_WAIT: 3
+      # Whether to disable the XDebug extension in the Codeception container completely or not.
+      XDEBUG_DISABLE: "${XDEBUG_DISABLE:-0}"
       # Declare that we are in a tric context so plugins can set custom test configs.
       TRIBE_TRIC: 1
+      # Let's set the lines and columns number explicitly to have the shell mirror the current one.
+      LINES: "${LINES:-24}"
+      COLUMNS: "${COLUMNS:-80}"
     depends_on:
       - wordpress
       - chrome

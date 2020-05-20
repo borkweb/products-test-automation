@@ -43,6 +43,8 @@ function process_realtime( $command ) {
 
 	echo PHP_EOL;
 
+	setup_terminal();
+
 	passthru( escapeshellcmd( $command ), $status );
 
 	return (int) $status;
