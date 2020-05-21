@@ -87,4 +87,10 @@ $run_configuration = array_merge( [ 'run', '--rm', 'codeception', 'run' ], $conf
 // Finally run the command.
 $status = tric_realtime()( array_merge( $run_configuration, $args( '...' ) ) );
 
+$has_failed = file_exists( $root . '/tests/_output/failed' );
+
+if ( $status || $has_failed ) {
+	exit( 1 );
+}
+
 exit( $status );
