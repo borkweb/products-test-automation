@@ -63,6 +63,13 @@ function get_terminal_lines_cols() {
 			$columns = $m['val'];
 		}
 	} else {
+		$resize_exists = ! empty( exec( "command -v resize" ) );
+
+		if ( ! $resize_exists ) {
+			// Probably not running a Xterm compatible terminal, bail.
+			return [ $lines, $columns ];
+		}
+
 		exec( 'resize', $output, $status );
 
 		if ( 0 !== $status ) {
