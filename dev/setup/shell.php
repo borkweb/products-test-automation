@@ -63,27 +63,15 @@ function get_terminal_lines_cols() {
 			$columns = $m['val'];
 		}
 	} else {
-		$resize_exists = ! empty( exec( "command -v resize" ) );
+		$tput_exists = ! empty( exec( "command -v tput" ) );
 
-		if ( ! $resize_exists ) {
-			// Probably not running a Xterm compatible terminal, bail.
+		if ( ! $tput_exists ) {
+			// We can't get the lines and columns on this terminal, bail.
 			return [ $lines, $columns ];
 		}
 
-		exec( 'resize', $output, $status );
-
-		if ( 0 !== $status ) {
-			// We cannot fetch information, bail.
-			return [ $lines, $columns ];
-		}
-
-		foreach ( $output as $line ) {
-			if ( ! preg_match( '/(?<key>(COLUMNS|LINES))=(?<val>[0-9]+)/', $line, $m ) ) {
-				continue;
-			}
-			$key    = strtolower( $m['key'] );
-			${$key} = (int) $m['val'];
-		}
+		$lines   = abs( intval( exec( 'tput lines' ) ) );
+		$columns = abs( intval( exec( 'tput cols' ) ) );
 	}
 
 	return [ $lines, $columns ];
