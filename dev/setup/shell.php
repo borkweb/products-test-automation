@@ -63,15 +63,35 @@ function get_terminal_lines_cols() {
 			$columns = $m['val'];
 		}
 	} else {
-		$tput_exists = ! empty( exec( "command -v tput" ) );
+		// Lines
+		exec( 'tput lines', $lines, $status );
 
-		if ( ! $tput_exists ) {
-			// We can't get the lines and columns on this terminal, bail.
+		if ( $status !== 0 ) {
+			// tput lines can't give us the lines on this terminal, bail.
 			return [ $lines, $columns ];
 		}
 
-		$lines   = abs( intval( exec( 'tput lines' ) ) );
-		$columns = abs( intval( exec( 'tput cols' ) ) );
+		if ( ! empty( $lines ) && is_numeric( $lines[0] ) ) {
+			$lines = abs( intval( $lines[0] ) );
+		} else {
+			// Unexpected value, bail.
+			return [ $lines, $columns ];
+		}
+
+		// Columns
+		exec( 'tput cols', $columns, $status );
+
+		if ( $status !== 0 ) {
+			// tput cols can't give us the columns on this terminal, bail.
+			return [ $lines, $columns ];
+		}
+
+		if ( ! empty( $columns ) && is_numeric( $columns[0] ) ) {
+			$columns = abs( intval( $columns[0] ) );
+		} else {
+			// Unexpected value, bail.
+			return [ $lines, $columns ];
+		}
 	}
 
 	return [ $lines, $columns ];
