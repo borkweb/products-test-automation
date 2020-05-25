@@ -15,6 +15,7 @@ use function Tribe\Test\args;
 use function Tribe\Test\colorize;
 use function Tribe\Test\dev;
 use function Tribe\Test\light_cyan;
+use function Tribe\Test\red;
 use function Tribe\Test\setup_tric_env;
 
 // Set up the argument parsing function.
@@ -31,7 +32,47 @@ $cli_header = implode( ' - ', [
 	light_cyan( 'Modern Tribe local testing and development tool' )
 ] );
 
+$warning = implode( "\n", [
+	red( '******************************************************************************'),
+	red( '------------------------------------------------------------------------------'),
+	red( '..............................................................................'),
+	red( '' ),
+	red( ' WARNING: Tric has been moved to its own repo and the version you are running' ),
+	red( '          is no longer maintained. Please checkout and use the following repo:' ),
+	red( '' ),
+	red( '                 https://github.com/moderntribe/tric' ),
+	red( '' ),
+	red( '          The products-test-automation repo will have tric removed from it' ),
+	red( '          after a reasonable time has passed to allow folks to migrate. Using' ),
+	red( '          this old repo is silly talk, though, and you should feel bad about' ),
+	red( '          yourself with each passing day that you do not change.' ),
+	red( '' ),
+	red( '          Your mom would be disappointed.' ),
+	red( '' ),
+red( '                          ___________    ____' ),
+red( '                   ______/   \__//   \__/____\\' ),
+red( '                 _/   \_/  :           //____\\\\' ),
+red( '                /|      :  :  ..      /        \\' ),
+red( '               | |     ::     ::      \        /' ),
+red( '               | |     :|     ||     \ \______/' ),
+red( '               | |     ||     ||      |\  /  |' ),
+red( '                \|     ||     ||      |   / | \\' ),
+red( '                 |     ||     ||      |  / /_\ \\' ),
+red( '                 | ___ || ___ ||      | /  /    \\' ),
+red( '                  \_-_/  \_-_/ | ____ |/__/      \\' ),
+red( '                               _\_--_/    \      /' ),
+red( '                              /____             /' ),
+red( '                             /     \           /' ),
+red( '                             \______\_________/' ),
+
+	red( '' ),
+	red( '..............................................................................'),
+	red( '------------------------------------------------------------------------------'),
+	red( '******************************************************************************'),
+] );
+
 echo $cli_header . PHP_EOL . PHP_EOL;
+echo $warning . PHP_EOL . PHP_EOL;
 
 setup_tric_env( __DIR__ );
 
